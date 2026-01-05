@@ -22,10 +22,12 @@ class AbstractDataset(data.Dataset):
         self.config = config
         self.mode = mode
 
-        random.shuffle(images["real"])
-        random.shuffle(images["fake"])
-        images["real"] = images["real"][:256]
-        images["fake"] = images["fake"][:256]
+        if self.config['dataset']["train" if mode == "train" or mode == "val" else "test"]["balance"]:
+            random.shuffle(images["real"])
+            random.shuffle(images["fake"])
+            l = min(len(images["real"]), len(images["fake"]))
+            images["real"] = images["real"][:l]
+            images["fake"] = images["fake"][:l]
 
         self.real_cnt = len(images["real"])
         self.fake_cnt = len(images["fake"])

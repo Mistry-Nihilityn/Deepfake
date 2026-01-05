@@ -129,6 +129,15 @@ def train(config):
     logger.info(params_string)
 
     train_data_loader, val_data_loader = prepare_train_data(config)
+    logger.info(f"Train set:")
+    logger.info(f"  - fake: {train_data_loader.dataset.fake_cnt:,}")
+    logger.info(f"  - real: {train_data_loader.dataset.real_cnt:,}")
+    logger.info(f"  - total: {train_data_loader.dataset.fake_cnt + train_data_loader.dataset.real_cnt:,}")
+    logger.info(f"\nValidation set:")
+    logger.info(f"  - fake: {val_data_loader.dataset.fake_cnt:,}")
+    logger.info(f"  - real: {val_data_loader.dataset.real_cnt:,}")
+    logger.info(f"  - total: {val_data_loader.dataset.fake_cnt + val_data_loader.dataset.real_cnt:,}")
+
     config["dataset"]["weight"] = get_weight(train_data_loader)
     logger.info(f"Weight: {config['dataset']['weight']}")
 
@@ -173,6 +182,11 @@ def test(config, train_dir):
     logger.info(params_string)
 
     test_data_loader = prepare_test_data(config)
+
+    logger.info(f"Train set:")
+    logger.info(f"  - fake: {test_data_loader.dataset.fake_cnt:,}")
+    logger.info(f"  - real: {test_data_loader.dataset.real_cnt:,}")
+    logger.info(f"  - total: {test_data_loader.dataset.fake_cnt + test_data_loader.dataset.real_cnt:,}")
 
     model_class = DETECTOR[config['model_name']]
     model = model_class(config)

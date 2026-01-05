@@ -45,16 +45,6 @@ def load_train_val(config):
             train_images["fake"].extend(images["train"]["fake"][folder])
         for folder in fake_folders[fake_train_cnt:fake_train_cnt+fake_val_cnt]:
             val_images["fake"].extend(images["train"]["fake"][folder])
-
-    print(f"Train set:")
-    print(f"  - fake: {len(train_images['fake']):,}")
-    print(f"  - real: {len(train_images['real']):,}")
-    print(f"  - total: {len(train_images['fake']) + len(train_images['real']):,}")
-    print(f"\nValidation set:")
-    print(f"  - fake: {len(val_images['fake']):,}")
-    print(f"  - real: {len(val_images['real']):,}")
-    print(f"  - total: {len(val_images['fake']) + len(val_images['real']):,}")
-
     return train_images, val_images
 
 
