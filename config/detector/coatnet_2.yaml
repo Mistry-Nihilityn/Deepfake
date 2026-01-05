@@ -1,0 +1,36 @@
+model_name: coatnet_2 # model name
+backbone_name: coatnet_2  # backbone name
+num_classes: 2
+
+# mean and std for normalization
+mean: [0.5, 0.5, 0.5]
+std: [0.5, 0.5, 0.5]
+
+# optimizer config
+optimizer:
+  # choose between 'adam' and 'sgd'
+  base: adam
+  additional: sam
+  adam:
+    lr: 0.0002  # learning rate
+    betas: [0.9, 0.999]  # betas for Adam optimizer
+    eps: 0.00000001  # epsilon for Adam optimizer
+    weight_decay: 0.0005  # weight decay for regularization
+    amsgrad: false
+  sam:
+    rho: 0.05
+
+# training config
+resolution: 256   # resolution of output image to network
+lr_scheduler: null   # learning rate scheduler
+n_epochs: 2   # number of epochs to train for
+start_epoch: 0   # manual epoch number
+
+# loss function
+loss_func: cross_entropy   # loss function to use
+losstype: null
+
+# metric
+metric_scoring: auc   # metric for evaluation (auc, acc, eer, ap)
+cuda: true   # whether to use CUDA acceleration
+cudnn: true   # whether to use CuDNN for convolution operations
