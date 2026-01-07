@@ -92,7 +92,7 @@ class Trainer(object):
         val_data_loaders=None,
         ):
 
-        self.logger.info("===> Epoch[{}] start!".format(epoch))
+        self.logger.info("===> Epoch[{}] start, lr= {:.4e}".format(epoch, self.optimizer.param_groups[0]['lr']))
         step_cnt = epoch * len(train_data_loader)
 
         # save the training data_dict

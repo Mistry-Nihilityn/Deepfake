@@ -30,11 +30,14 @@ optimizer:
     amsgrad: false
   sam:
     rho: 0.05
+    affect_classifier: false
 
 # training config
 resolution: 256   # resolution of output image to network
-lr_scheduler: null   # learning rate scheduler
-n_epochs: 2   # number of epochs to train for
+lr_scheduler: step   # learning rate scheduler
+lr_step: 2
+lr_gamma: 0.5
+n_epochs: 15   # number of epochs to train for
 start_epoch: 0   # manual epoch number
 
 # loss function

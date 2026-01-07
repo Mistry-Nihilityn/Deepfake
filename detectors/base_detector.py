@@ -6,7 +6,10 @@
 import abc
 import torch
 import torch.nn as nn
-from typing import Union
+from typing import Union, Iterable
+
+from torch.nn import Parameter
+
 
 class AbstractDetector(nn.Module, metaclass=abc.ABCMeta):
     """
@@ -69,6 +72,16 @@ class AbstractDetector(nn.Module, metaclass=abc.ABCMeta):
         Returns the training metrics for the model.
         """
         pass
+
+    @abc.abstractmethod
+    def feature_params(self) -> Iterable[Parameter]:
+        """
+        """
+
+    @abc.abstractmethod
+    def classifier_params(self) -> Iterable[Parameter]:
+        """
+        """
 
     # @abc.abstractmethod
     # def load(self, path: str) -> None:

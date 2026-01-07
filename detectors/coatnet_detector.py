@@ -9,6 +9,7 @@ from einops.layers.torch import Rearrange
 from detectors.base_detector import AbstractDetector
 from metrics.base_metrics_class import calculate_metrics_for_train
 from metrics.registry import BACKBONE, DETECTOR, LOSSFUNC
+from networks.base_backbone import AbstractBackbone
 
 logger = logging.getLogger(__name__)
 
@@ -59,4 +60,10 @@ class CoAtNet2Detector(AbstractDetector):
     def forward(self, x: torch.Tensor, inference=False) -> torch.Tensor:
         features = self.features(x)
         return self.classifier(features)
+
+    def feature_params(self):
+        return self.backbone.feature_params()
+
+    def classifier_params(self):
+        return self.backbone.classifier_params()
 

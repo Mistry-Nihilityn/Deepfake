@@ -37,5 +37,14 @@ def create_logger(log_path, rank=0):
     sh.setLevel(logging.INFO)  # Set logging level for stream handler
     sh.setFormatter(formatter)
     logger.addHandler(sh)
-
     return logger
+
+
+def close_logger(logger):
+    for handler in logger.handlers[:]:
+        handler.close()
+        logger.removeHandler(handler)
+
+    logger.disabled = True
+    logger.manager.disable = logging.CRITICAL
+

@@ -11,6 +11,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from dataset.AbstractDataset import AbstractDataset
+from networks.base_backbone import AbstractBackbone
 from optimizor.SAM import SAM
 from optimizor.LinearLR import LinearDecayLR
 from prepare_data import load_train_val, load_test
@@ -18,7 +19,7 @@ from trainer.tester import Tester
 
 from trainer.trainer import Trainer
 from detectors import DETECTOR
-from logger import create_logger
+from logger import create_logger, close_logger
 
 
 def init_seed(config):
@@ -69,10 +70,10 @@ def choose_optimizer(model, config):
 
     if add_name == 'sam':
         optimizer = SAM(
-            model.parameters(),
+            model.feature_params(),
+            model.classifier_params(),
             base_optimizer_class,
-            **config['optimizer'][add_name],
-            **config['optimizer'][opt_name]
+            **config['optimizer'][add_name], **config['optimizer'][opt_name]
         )
     else:
         optimizer = base_optimizer_class(
@@ -167,6 +168,7 @@ def train(config):
     loss = metric["avg_loss"]
     acc = metric["acc"]
     logger.info(f"Stop Training on best Testing metric epoch:{epoch}, acc:{acc}, loss:{loss}")
+    close_logger(logger)
 
     return log_dir
 
@@ -196,6 +198,7 @@ def test(config, train_dir):
     tester.test(test_data_loader)
 
     logger.info(f"Test finished!")
+    close_logger(logger)
 
 def run(config_path):
     # parse options and load config

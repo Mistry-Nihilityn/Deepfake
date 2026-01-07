@@ -1,6 +1,9 @@
 import abc
+from inspect import Parameter
+
 import torch
-from typing import Union
+from typing import Union, Iterable
+
 
 class AbstractBackbone(abc.ABC):
     """
@@ -16,15 +19,25 @@ class AbstractBackbone(abc.ABC):
         pass
     
     @abc.abstractmethod
-    def features(self, data_dict: dict) -> torch.tensor:
+    def features(self, data_dict: dict) -> torch.Tensor:
         """
         """
         
     @abc.abstractmethod
-    def classifier(self, features: torch.tensor) -> torch.tensor:
+    def classifier(self, features: torch.Tensor) -> torch.Tensor:
         """
         """
-        
+
+    @abc.abstractmethod
+    def feature_params(self) -> Iterable[Parameter]:
+        """
+        """
+
+    @abc.abstractmethod
+    def classifier_params(self) -> Iterable[Parameter]:
+        """
+        """
+
     def init_weights(self, pretrained_path: Union[bool, str]):
         """
         This method can be optionally implemented by subclasses.

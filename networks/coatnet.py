@@ -206,6 +206,16 @@ class Transformer(nn.Module):
 
 class CoAtNet(nn.Module, AbstractBackbone):
 
+    def feature_params(self):
+        for name, param in self.named_parameters():
+            if name == "fc":
+                continue
+            else:
+                yield param
+
+    def classifier_params(self):
+        yield self.fc.parameters()
+
     def features(self, x: dict) -> torch.tensor:
         x = self.s0(x)
         x = self.s1(x)
