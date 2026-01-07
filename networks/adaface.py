@@ -1,15 +1,16 @@
 from collections import namedtuple
+
 import torch
 import torch.nn as nn
+from torch.nn import BatchNorm1d, BatchNorm2d
+from torch.nn import Conv2d, Linear
 from torch.nn import Dropout
 from torch.nn import MaxPool2d
-from torch.nn import Sequential
-from torch.nn import Conv2d, Linear
-from torch.nn import BatchNorm1d, BatchNorm2d
-from torch.nn import ReLU, Sigmoid
 from torch.nn import Module
 from torch.nn import PReLU
-import os
+from torch.nn import ReLU, Sigmoid
+from torch.nn import Sequential
+
 
 def build_model(model_name='ir_50'):
     if model_name == 'ir_101':

@@ -1,8 +1,8 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .abstract_loss_func import AbstractLossClass
+
 from metrics.registry import LOSSFUNC
+from .abstract_loss_func import AbstractLossClass
 
 
 @LOSSFUNC.register_module(module_name="jsloss")

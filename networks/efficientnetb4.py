@@ -6,13 +6,12 @@
 The code is for EfficientNetB4 backbone.
 '''
 
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Union
 from efficientnet_pytorch import EfficientNet
+
 from metrics.registry import BACKBONE
-import os
+
 
 @BACKBONE.register_module(module_name="efficientnetb4")
 class EfficientNetB4(nn.Module):

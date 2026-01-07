@@ -6,6 +6,8 @@ import yaml
 from fvcore.common.config import CfgNode as CfgNodeOri
 
 from . import custom_config
+
+
 def load_yaml_with_base(text: str, allow_unsafe: bool = False):
     """
     Just like `yaml.load(open(filename))`, but inherit attributes from its

@@ -25,29 +25,17 @@ Reference:
 }
 '''
 
-import os
-import datetime
 import logging
-import numpy as np
-from sklearn import metrics
-from typing import Union
-from collections import defaultdict
 import random
 
+import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.nn import DataParallel
-from torch.utils.tensorboard import SummaryWriter
 
-from metrics.base_metrics_class import calculate_metrics_for_train
-
-from .base_detector import AbstractDetector
 from detectors import DETECTOR
-from networks import BACKBONE
 from loss import LOSSFUNC
-
+from metrics.base_metrics_class import calculate_metrics_for_train
+from networks import BACKBONE
+from .base_detector import AbstractDetector
 
 logger = logging.getLogger(__name__)
 

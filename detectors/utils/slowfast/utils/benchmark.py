@@ -3,14 +3,14 @@
 Functions for benchmarks.
 """
 
-import numpy as np
 import pprint
+
+import numpy as np
+import slowfast.utils.logging as logging
+import slowfast.utils.misc as misc
 import torch
 import tqdm
 from fvcore.common.timer import Timer
-
-import slowfast.utils.logging as logging
-import slowfast.utils.misc as misc
 from slowfast.datasets import loader
 from slowfast.utils.env import setup_environment
 

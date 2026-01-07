@@ -1,8 +1,7 @@
 import numpy as np
-from sklearn import metrics
-from collections import defaultdict
 import torch
 import torch.nn as nn
+from sklearn import metrics
 
 
 def get_accracy(output, label):

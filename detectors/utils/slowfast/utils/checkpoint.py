@@ -4,15 +4,15 @@
 """Functions that handle saving and loading of checkpoints."""
 
 import copy
-import numpy as np
 import os
 import pickle
 from collections import OrderedDict
-import torch
-from fvcore.common.file_io import PathManager
 
+import numpy as np
 import slowfast.utils.distributed as du
 import slowfast.utils.logging as logging
+import torch
+from fvcore.common.file_io import PathManager
 from slowfast.utils.c2_model_loading import get_name_convert_func
 
 logger = logging.get_logger(__name__)

@@ -1,14 +1,12 @@
 """A VGG-based perceptual loss function for PyTorch."""
 
 import torch
-from torch import nn
+import torch.nn as nn
 from torch.nn import functional as F
 from torchvision import models, transforms
-import torch
-import torch.nn as nn
-from .abstract_loss_func import AbstractLossClass
-from metrics.registry import LOSSFUNC
 
+from metrics.registry import LOSSFUNC
+from .abstract_loss_func import AbstractLossClass
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

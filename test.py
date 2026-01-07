@@ -1,19 +1,20 @@
 """
 eval pretained model.
 """
-import numpy as np
-import random
-import yaml
-from tqdm import tqdm
-from metrics.utils import get_test_metrics
-import torch
-import torch.nn.parallel
-import torch.backends.cudnn as cudnn
-import torch.utils.data
-from dataset.abstract_dataset import DeepfakeAbstractBaseDataset
-from detectors import DETECTOR
-
 import argparse
+import random
+
+import numpy as np
+import torch
+import torch.backends.cudnn as cudnn
+import torch.nn.parallel
+import torch.utils.data
+import yaml
+from dataset.abstract_dataset import DeepfakeAbstractBaseDataset
+from tqdm import tqdm
+
+from detectors import DETECTOR
+from metrics.utils import get_test_metrics
 
 parser = argparse.ArgumentParser(description='Process some paths.')
 parser.add_argument('--detector_path', type=str, 

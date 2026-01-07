@@ -9,11 +9,11 @@
 """ Masks functions for faceswap.py """
 
 import inspect
-import logging
 import sys
 
 import cv2
 import numpy as np
+
 
 # logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 

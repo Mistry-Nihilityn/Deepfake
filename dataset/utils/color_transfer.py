@@ -1,9 +1,8 @@
 import cv2
 import numpy as np
-from numpy import linalg as npla
-
 import scipy as sp
 import scipy.sparse
+from numpy import linalg as npla
 from scipy.sparse.linalg import spsolve
 
 

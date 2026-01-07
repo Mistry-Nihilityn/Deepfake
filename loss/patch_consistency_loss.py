@@ -1,4 +1,5 @@
 import torch
+
 from metrics.registry import LOSSFUNC
 from .abstract_loss_func import AbstractLossClass
 

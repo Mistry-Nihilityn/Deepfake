@@ -70,8 +70,8 @@ class AbstractDataset(data.Dataset):
                     A.HueSaturationValue(p=1.0)
                 ], p=0.5),
                 A.ImageCompression(
-                    quality_range=(aug_config['quality_lower'],
-                                   aug_config['quality_upper']),
+                    quality_lower=aug_config['quality_lower'],
+                    quality_upper=aug_config['quality_upper'],
                     p=0.5
                 )
             ],

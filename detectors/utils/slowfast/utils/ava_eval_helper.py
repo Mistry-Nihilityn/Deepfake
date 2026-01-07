@@ -29,14 +29,15 @@ from __future__ import (
     print_function,
     unicode_literals,
 )
+
 import csv
 import logging
-import numpy as np
 import pprint
 import time
 from collections import defaultdict
-from fvcore.common.file_io import PathManager
 
+import numpy as np
+from fvcore.common.file_io import PathManager
 from slowfast.utils.ava_evaluation import (
     object_detection_evaluation,
     standard_fields,

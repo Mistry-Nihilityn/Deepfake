@@ -11,11 +11,11 @@
 import inspect
 import logging
 import sys
+from math import ceil, floor
 
 import cv2
 import numpy as np
-import random
-from math import ceil, floor
+
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 def landmarks_to_bbox(landmarks: np.ndarray) -> np.ndarray:

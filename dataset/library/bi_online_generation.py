@@ -1,16 +1,17 @@
-import dlib
-from skimage import io
-from skimage import transform as sktransform
-import numpy as np
-from matplotlib import pyplot as plt
 import json
 import os
 import random
+
+import cv2
+import dlib
+import numpy as np
 from PIL import Image
 from imgaug import augmenters as iaa
-from .DeepFakeMask import dfl_full,facehull,components,extended
-import cv2
-import tqdm
+from skimage import io
+from skimage import transform as sktransform
+
+from .DeepFakeMask import dfl_full, facehull, components, extended
+
 
 def name_resolve(path):
     name = os.path.splitext(os.path.basename(path))[0]

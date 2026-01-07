@@ -1,6 +1,7 @@
 import torch.nn as nn
-from .abstract_loss_func import AbstractLossClass
+
 from metrics.registry import LOSSFUNC
+from .abstract_loss_func import AbstractLossClass
 
 
 @LOSSFUNC.register_module(module_name="capsule_loss")

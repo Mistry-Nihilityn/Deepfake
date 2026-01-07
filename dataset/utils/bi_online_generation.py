@@ -1,17 +1,16 @@
-import dlib
-from skimage import io
-from skimage import transform as sktransform
-import numpy as np
-from matplotlib import pyplot as plt
 import json
 import os
 import random
+
+import cv2
+import dlib
 from PIL import Image
 from imgaug import augmenters as iaa
-from dataset.library.DeepFakeMask import dfl_full,facehull,components,extended
+from skimage import io
+from skimage import transform as sktransform
+
+from dataset.library.DeepFakeMask import dfl_full, facehull, components, extended
 from dataset.utils.attribution_mask import *
-import cv2
-import tqdm
 
 '''
 from PIL import ImageDraw

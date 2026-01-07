@@ -1,5 +1,6 @@
-import numpy as np
 import cv2
+import numpy as np
+
 
 def AlphaBlend(foreground, background, alpha):
     # Convert uint8 to float

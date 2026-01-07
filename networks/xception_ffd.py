@@ -1,9 +1,10 @@
+import os
+import sys
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import os
-import sys
 
 class SeparableConv2d(nn.Module):
   def __init__(self, c_in, c_out, ks, stride=1, padding=0, dilation=1, bias=False):

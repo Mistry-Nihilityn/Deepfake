@@ -4,17 +4,17 @@
 """Meters."""
 
 import datetime
-import numpy as np
 import os
 from collections import defaultdict, deque
-import torch
-from fvcore.common.timer import Timer
-from sklearn.metrics import average_precision_score
 
+import numpy as np
 import slowfast.datasets.ava_helper as ava_helper
 import slowfast.utils.logging as logging
 import slowfast.utils.metrics as metrics
 import slowfast.utils.misc as misc
+import torch
+from fvcore.common.timer import Timer
+from sklearn.metrics import average_precision_score
 from slowfast.utils.ava_eval_helper import (
     evaluate_ava,
     read_csv,

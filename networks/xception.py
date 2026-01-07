@@ -7,19 +7,12 @@ The code is mainly modified from GitHub link below:
 https://github.com/ondyari/FaceForensics/blob/master/classification/network/xception.py
 '''
 
-import os
-import argparse
 import logging
 
-import math
-import torch
 # import pretrainedmodels
 import torch.nn as nn
 import torch.nn.functional as F
 
-import torch.utils.model_zoo as model_zoo
-from torch.nn import init
-from typing import Union
 from metrics.registry import BACKBONE
 
 logger = logging.getLogger(__name__)

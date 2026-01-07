@@ -4,11 +4,12 @@ code from https://github.com/wuhuikai/FaceSwap/blob/master/face_swap.py
 
 
 
-#! /usr/bin/env python
+import logging
+
+# ! /usr/bin/env python
 import cv2
 import numpy as np
 import scipy.spatial as spatial
-import logging
 
 
 ## 3D Transform

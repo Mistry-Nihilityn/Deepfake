@@ -4,16 +4,12 @@
 # Written by Hangyan Jiang
 # --------------------------------------------------------
 
+import cv2
+import numpy as np
 # Testing part
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import cv2
-from PIL import Image
-import numpy as np
-import matplotlib.pyplot as plt
-
-import argparse
 
 
 class SRMConv2d(nn.Module):

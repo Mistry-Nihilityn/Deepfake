@@ -4,24 +4,16 @@
 # Copyright (c) 2021
 # 3rd party softwares' licenses are noticed at https://github.com/mapooon/SelfBlendedImages/blob/master/LICENSE
 
-import torch
-from torchvision import datasets,transforms,utils
-from torch.utils.data import Dataset,IterableDataset
-from glob import glob
-from copy import deepcopy
-import os
-import numpy as np
-from PIL import Image
 import random
-import cv2
-from torch import nn
-import sys
-import scipy as sp
-from skimage.measure import label, regionprops
-from .library.bi_online_generation import random_get_hull
-import albumentations as alb
-
 import warnings
+
+import albumentations as alb
+import cv2
+import numpy as np
+import torch
+
+from .library.bi_online_generation import random_get_hull
+
 warnings.filterwarnings('ignore')
 
 

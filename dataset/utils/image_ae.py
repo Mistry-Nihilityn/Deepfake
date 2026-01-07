@@ -1,9 +1,7 @@
-from torch import nn
-from torch.autograd import Variable
 import torch
-import torch.nn.functional as F
-
 import torchvision.models as models
+from torch import nn
+
 
 def add_gaussian_noise(ins, mean=0, stddev=0.1):
     noise = ins.data.new(ins.size()).normal_(mean, stddev)

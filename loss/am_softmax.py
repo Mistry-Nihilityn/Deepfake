@@ -12,14 +12,13 @@
 """
 
 import math
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import Parameter
-import torch as th
 
-from .abstract_loss_func import AbstractLossClass
+import torch
+import torch as th
+import torch.nn.functional as F
+
 from metrics.registry import LOSSFUNC
+from .abstract_loss_func import AbstractLossClass
 
 
 #------------ AMSoftmax Loss ----------------------   

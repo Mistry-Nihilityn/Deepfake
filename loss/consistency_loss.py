@@ -1,6 +1,6 @@
-import torch.nn as nn
 import torch
-from .abstract_loss_func import AbstractLossClass
+import torch.nn as nn
+
 from metrics.registry import LOSSFUNC
 
 

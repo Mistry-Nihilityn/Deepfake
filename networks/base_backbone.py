@@ -1,8 +1,8 @@
 import abc
 from inspect import Parameter
+from typing import Union, Iterable
 
 import torch
-from typing import Union, Iterable
 
 
 class AbstractBackbone(abc.ABC):

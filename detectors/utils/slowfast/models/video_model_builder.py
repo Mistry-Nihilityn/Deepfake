@@ -3,11 +3,11 @@
 
 """Video models."""
 
-import torch
-import torch.nn as nn
 import copy
 
 import slowfast.utils.weight_init_helper as init_helper
+import torch
+import torch.nn as nn
 from slowfast.models.batchnorm_helper import get_norm
 
 from . import head_helper, resnet_helper, stem_helper

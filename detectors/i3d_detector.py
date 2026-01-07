@@ -85,31 +85,15 @@ Reference:
 }
 '''
 
-import os
-import datetime
 import logging
-import numpy as np
-from sklearn import metrics
-from typing import Union
-from collections import defaultdict
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.nn import DataParallel
-from torch.utils.tensorboard import SummaryWriter
-
-from metrics.base_metrics_class import calculate_metrics_for_train
-
-from .base_detector import AbstractDetector
-from detectors import DETECTOR
-from networks import BACKBONE
-from loss import LOSSFUNC
-
-
 import os
 import sys
+
+from detectors import DETECTOR
+from loss import LOSSFUNC
+from metrics.base_metrics_class import calculate_metrics_for_train
+from .base_detector import AbstractDetector
+
 current_file_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(os.path.dirname(current_file_path))
 project_root_dir = os.path.dirname(parent_dir)
@@ -120,8 +104,6 @@ import torch
 from .utils.slowfast.models.video_model_builder import ResNet as ResNetOri
 from .utils.slowfast.config.defaults import get_cfg
 from torch import nn
-import random
-
 
 random_select = True
 no_time_pool = True

@@ -1,22 +1,21 @@
-import dlib
-from skimage import io
-from skimage import transform as sktransform
-import numpy as np
-from matplotlib import pyplot as plt
 import json
 import os
 import random
-from PIL import Image
-from imgaug import augmenters as iaa
-from .DeepFakeMask import dfl_full,facehull,components,extended,gridMasking,MeshgridMasking, facehull2
-from .SLADD import SladdMasking
+
 import cv2
+import dlib
+import numpy as np
 import torch
 import torch.nn as nn
-import tqdm
-import pdb
-
+from PIL import Image
+from imgaug import augmenters as iaa
+from skimage import io
+from skimage import transform as sktransform
 from transformers import SegformerImageProcessor, SegformerForSemanticSegmentation
+
+from .DeepFakeMask import dfl_full, facehull, components, extended
+from .SLADD import SladdMasking
+
 device = torch.device("cpu")
 #image_processor = SegformerImageProcessor.from_pretrained("/Youtu_Pangu_Security_Public/youtu-pangu-public/zhiyuanyan/huggingface/hub/models--jonathandinu--face-parsing/snapshots/a2bf62f39dfd8f8856a3c19be8b0707a8d68abdd")
 #face_parser = SegformerForSemanticSegmentation.from_pretrained("/Youtu_Pangu_Security_Public/youtu-pangu-public/zhiyuanyan/huggingface/hub/models--jonathandinu--face-parsing/snapshots/a2bf62f39dfd8f8856a3c19be8b0707a8d68abdd").to(device)

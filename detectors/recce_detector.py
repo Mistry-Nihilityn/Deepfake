@@ -25,29 +25,20 @@ Reference:
 }
 '''
 
-import os
-import datetime
-from typing import Union
-from sklearn import metrics
-from collections import defaultdict
+import logging
 from functools import partial
-from timm.models import xception
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-from torch.nn import DataParallel
-from torch.utils.tensorboard import SummaryWriter
-import numpy as np
-import argparse
-from metrics.base_metrics_class import calculate_metrics_for_train
+from timm.models import xception
 
+from detectors import DETECTOR
+from loss import LOSSFUNC
+from metrics.base_metrics_class import calculate_metrics_for_train
+from networks import BACKBONE
 from networks.xception import SeparableConv2d, Block
 from .base_detector import AbstractDetector
-from detectors import DETECTOR
-from networks import BACKBONE
-from loss import LOSSFUNC
-import logging
 
 logger = logging.getLogger(__name__)
 

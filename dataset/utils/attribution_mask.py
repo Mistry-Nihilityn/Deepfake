@@ -1,9 +1,12 @@
 
 
-import cv2
 import math
+
+import cv2
 import numpy as np
-from scipy.ndimage import binary_erosion, binary_dilation
+from scipy.ndimage import binary_dilation
+
+
 def dist(p1, p2):
     return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 

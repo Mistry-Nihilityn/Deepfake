@@ -3,9 +3,8 @@
 
 """Optimizer."""
 
-import torch
-
 import slowfast.utils.lr_policy as lr_policy
+import torch
 
 
 def construct_optimizer(model, cfg):

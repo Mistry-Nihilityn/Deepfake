@@ -1,25 +1,23 @@
 import datetime
 import os
 import random
-import yaml
+
 import torch
-import torch.nn.parallel
 import torch.backends.cudnn as cudnn
-import torch.utils.data
+import torch.nn.parallel
 import torch.optim as optim
-from torch import nn
+import torch.utils.data
+import yaml
 from torch.utils.data import DataLoader
 
 from dataset.AbstractDataset import AbstractDataset
-from networks.base_backbone import AbstractBackbone
-from optimizor.SAM import SAM
-from optimizor.LinearLR import LinearDecayLR
-from prepare_data import load_train_val, load_test
-from trainer.tester import Tester
-
-from trainer.trainer import Trainer
 from detectors import DETECTOR
 from logger import create_logger, close_logger
+from optimizor.LinearLR import LinearDecayLR
+from optimizor.SAM import SAM
+from prepare_data import load_train_val, load_test
+from trainer.tester import Tester
+from trainer.trainer import Trainer
 
 
 def init_seed(config):

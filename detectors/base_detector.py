@@ -4,10 +4,10 @@
 # description: Abstract Class for the Deepfake Detector
 
 import abc
-import torch
-import torch.nn as nn
 from typing import Union, Iterable
 
+import torch
+import torch.nn as nn
 from torch.nn import Parameter
 
 

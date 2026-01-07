@@ -1,12 +1,12 @@
 import json
-from datetime import datetime
 import os
 import sys
+from datetime import datetime
 
 import yaml
 from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score, roc_auc_score, f1_score, precision_score, recall_score, \
-    roc_curve, average_precision_score, log_loss,confusion_matrix, ConfusionMatrixDisplay
+    roc_curve, average_precision_score, log_loss, confusion_matrix, ConfusionMatrixDisplay
 
 current_file_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(os.path.dirname(current_file_path))

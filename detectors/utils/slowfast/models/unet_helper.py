@@ -1,6 +1,5 @@
 InPlaceABN = None
 from torch import nn
-import torch.nn.functional as F
 
 
 class Conv3dReLU(nn.Sequential):

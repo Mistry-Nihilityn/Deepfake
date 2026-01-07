@@ -1,5 +1,5 @@
-from sklearn import metrics
 import numpy as np
+from sklearn import metrics
 
 
 def parse_metric_for_print(metric):

@@ -3,15 +3,15 @@ Create face mask and face boundary mask according to face landmarks,
 so as to supervize the activation of Conv layer.
 '''
 
-import os
-import numpy as np
+import argparse
+import random
+import time
+
 import cv2
 import dlib
-import random
-import argparse
-from tqdm import tqdm
-import time
+import numpy as np
 from skimage import transform as trans
+
 # from color_transfer import color_transfer
 from .warp import gen_warp_params, warp_by_params, warp_mask
 

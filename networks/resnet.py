@@ -6,11 +6,7 @@ Created on 18-5-21 下午5:26
 """
 import torch
 import torch.nn as nn
-import math
 import torch.utils.model_zoo as model_zoo
-import torch.nn.utils.weight_norm as weight_norm
-import torch.nn.functional as F
-
 
 # __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
 #            'resnet152']

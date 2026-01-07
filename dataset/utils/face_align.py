@@ -1,8 +1,6 @@
 import numpy
 
 from .umeyama import umeyama
-from numpy.linalg import inv
-import cv2
 
 mean_face_x = numpy.array([
 0.000213256, 0.0752622, 0.18113, 0.29077, 0.393397, 0.586856, 0.689483, 0.799124,

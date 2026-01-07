@@ -14,7 +14,6 @@ import yaml
 import random
 import torch
 import numpy as np
-from copy import deepcopy
 import albumentations as A
 from dataset.albu import IsotropicResize
 from dataset.abstract_dataset import DeepfakeAbstractBaseDataset

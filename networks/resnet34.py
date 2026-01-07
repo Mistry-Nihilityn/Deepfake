@@ -6,13 +6,12 @@
 The code is for ResNet34 backbone.
 '''
 
-import os
 import logging
-from typing import Union
+
 import torch
-import torchvision
 import torch.nn as nn
-import torch.nn.functional as F
+import torchvision
+
 from metrics.registry import BACKBONE
 
 logger = logging.getLogger(__name__)

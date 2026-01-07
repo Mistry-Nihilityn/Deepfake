@@ -5,9 +5,9 @@ Date: May 07, 2020
 from __future__ import print_function
 
 import torch
-import torch.nn as nn
-from .abstract_loss_func import AbstractLossClass
+
 from metrics.registry import LOSSFUNC
+from .abstract_loss_func import AbstractLossClass
 
 
 @LOSSFUNC.register_module(module_name="supcon")
