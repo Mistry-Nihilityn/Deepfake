@@ -109,7 +109,6 @@ def show_samples(dataset, n=5):
         ax.imshow(img)
         ax.set_title(f"Label: {'Fake' if label == 1 else 'Real'}")
         ax.axis('off')
-
     plt.tight_layout()
     plt.show()
 

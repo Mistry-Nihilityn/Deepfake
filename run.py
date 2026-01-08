@@ -218,4 +218,4 @@ def run(config_path):
             test(config, train_dir)
         
 if __name__ == '__main__':
-    run("config/run_config.yaml")
+    run("config/run_resnet50.yaml")

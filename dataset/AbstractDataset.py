@@ -25,8 +25,8 @@ class AbstractDataset(data.Dataset):
         if self.config['dataset']["train" if mode == "train" or mode == "val" else "test"].get("balance", False):
             random.shuffle(images["real"])
             random.shuffle(images["fake"])
-            l = 32
-            # l = min(len(images["real"]), len(images["fake"]))
+            # l = 32
+            l = min(len(images["real"]), len(images["fake"]))
             images["real"] = images["real"][:l]
             images["fake"] = images["fake"][:l]
 
@@ -41,8 +41,8 @@ class AbstractDataset(data.Dataset):
             aug_config = self.config["dataset"]["train"]['data_aug']
             trans = A.Compose([
                 A.HorizontalFlip(p=aug_config['flip_prob']),
-                A.Rotate(limit=aug_config['rotate_limit'],p=aug_config['rotate_prob']),
-                A.GaussianBlur(blur_limit=aug_config['blur_limit'],p=aug_config['blur_prob']),
+                A.Rotate(limit=aug_config['rotate_limit'], p=aug_config['rotate_prob']),
+                A.GaussianBlur(blur_limit=aug_config['blur_limit'], p=aug_config['blur_prob']),
                 A.OneOf([
                     IsotropicResize(
                         max_side=self.config['resolution'],
@@ -79,7 +79,23 @@ class AbstractDataset(data.Dataset):
             )
             # trans = A.Compose([])
         else:
-            trans = A.Compose([])
+            trans = A.OneOf([
+                IsotropicResize(
+                    max_side=self.config['resolution'],
+                    interpolation_down=cv2.INTER_AREA,
+                    interpolation_up=cv2.INTER_CUBIC
+                ),
+                IsotropicResize(
+                    max_side=self.config['resolution'],
+                    interpolation_down=cv2.INTER_AREA,
+                    interpolation_up=cv2.INTER_LINEAR
+                ),
+                IsotropicResize(
+                    max_side=self.config['resolution'],
+                    interpolation_down=cv2.INTER_LINEAR,
+                    interpolation_up=cv2.INTER_LINEAR
+                ),
+            ], p=1)
         return trans
 
     def load_rgb(self, file_path):

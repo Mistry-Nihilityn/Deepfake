@@ -45,14 +45,14 @@ def get_folder(dataset_name):
         real_train = []
         fake_train = []
         real_test = [os.path.join(root_path, dataset_name, "Celeb-real"),
-                      os.path.join(root_path, dataset_name, "YouTube-real")]
+                     os.path.join(root_path, dataset_name, "YouTube-real")]
         fake_test = [os.path.join(root_path, dataset_name, "Celeb-synthesis")]
-    elif dataset_name == "deepfacelab":
+    elif dataset_name in ["deepfacelab", "heygen_new", "stargan", "starganv2", "styleclip"]:
         real_train = [os.path.join(root_path, dataset_name, "real")]
         fake_train = [os.path.join(root_path, dataset_name, "fake")]
         real_test = []
         fake_test = []
-    elif dataset_name in ["DiT", "fsgan"]:
+    elif dataset_name in ["DiT", "fsgan", "lia", "StyleGAN2", "faceswap", "heygen", "simswap"]:
         real_train = []
         fake_train = [os.path.join(root_path, dataset_name, "ff")]
         real_test = []
@@ -63,16 +63,16 @@ def get_folder(dataset_name):
         real_test = []
         fake_test = []
         print(f"未知数据集 {dataset_name}")
-        return None, None
+        return None, None, None, None
 
     for folder in real_train + fake_train + real_test + fake_test:
         if not os.path.exists(folder):
-            print(f"错误: 文件夹 '{real_train}' 不存在！")
-            return None, None
+            print(f"错误: 文件夹 '{folder}' 不存在！")
+            return None, None, None, None
 
         if not os.path.isdir(folder):
-            print(f"错误: '{real_train}' 不是文件夹！")
-            return None, None
+            print(f"错误: '{folder}' 不是文件夹！")
+            return None, None, None, None
 
     return real_train, fake_train, real_test, fake_test
 

@@ -18,3 +18,4 @@ from .sbi_detector import SBIDetector
 from .i3d_detector import I3DDetector
 from .rfm_detector import RFMDetector
 from .coatnet_detector import CoAtNet2Detector
+from .resnet_detector import ResNetDetector
