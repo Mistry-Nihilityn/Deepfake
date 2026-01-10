@@ -1,0 +1,11 @@
+name: SageMaker
+
+root: ../dataset
+domain: [ff]
+real_dataset_names: [ SageMaker ]
+fake_dataset_names: [ SageMaker ]
+batch_size: 128
+workers: 8
+balance: false
+split:
+  test: 1.0

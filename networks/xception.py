@@ -8,12 +8,16 @@ https://github.com/ondyari/FaceForensics/blob/master/classification/network/xcep
 '''
 
 import logging
+from inspect import Parameter
+from typing import Iterable
 
 # import pretrainedmodels
 import torch.nn as nn
 import torch.nn.functional as F
 
 from metrics.registry import BACKBONE
+from networks.adaface import Backbone
+from networks.base_backbone import AbstractBackbone
 
 logger = logging.getLogger(__name__)
 
@@ -95,11 +99,21 @@ def add_gaussian_noise(ins, mean=0, stddev=0.2):
 
 
 @BACKBONE.register_module(module_name="xception")
-class Xception(nn.Module):
+class Xception(nn.Module, AbstractBackbone):
     """
     Xception optimized for the ImageNet dataset, as specified in
     https://arxiv.org/pdf/1610.02357.pdf
     """
+
+    def feature_params(self) -> Iterable[Parameter]:
+        for name, param in self.named_parameters():
+            if "last_linear" in name:
+                continue
+            else:
+                yield param
+
+    def classifier_params(self) -> Iterable[Parameter]:
+        return self.last_linear.parameters()
 
     def __init__(self, xception_config):
         """ Constructor

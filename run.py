@@ -1,6 +1,9 @@
 import datetime
 import os
 import random
+import sys
+import time
+import traceback
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -15,7 +18,7 @@ from detectors import DETECTOR
 from logger import create_logger, close_logger
 from optimizor.LinearLR import LinearDecayLR
 from optimizor.SAM import SAM
-from prepare_data import load_train_val, load_test
+from prepare_data import load_train, load_test
 from trainer.tester import Tester
 from trainer.trainer import Trainer
 
@@ -25,29 +28,38 @@ def init_seed(config):
         config['seed'] = random.randint(1, 10000)
     random.seed(config['seed'])
     if config['cuda']:
+        random.seed(config['seed'])
         torch.manual_seed(config['seed'])
         torch.cuda.manual_seed_all(config['seed'])
 
 
-def prepare_train_data(config):
-    train_files, val_files = load_train_val(config)
+def prepare_train_data(config, logger):
+    train_files, val_files, test_files = load_train(config, logger)
+    print(len(train_files["real"]), len(train_files["fake"]), len(val_files["real"]), len(val_files["fake"]),
+          len(test_files["real"]), len(test_files["fake"]))
     train_data_loader = torch.utils.data.DataLoader(
         dataset=AbstractDataset(train_files, config, mode='train'),
         batch_size=config["dataset"]["train"]['batch_size'],
         shuffle=True,
         num_workers=int(config["dataset"]["train"]['workers'])
-    )
+    ) if len(train_files) > 0 else None
     val_data_loader = torch.utils.data.DataLoader(
         dataset=AbstractDataset(val_files, config, mode='val'),
         batch_size=config["dataset"]["train"]['batch_size'],
         shuffle=False,
         num_workers=int(config["dataset"]["train"]['workers'])
-    )
-    return train_data_loader, val_data_loader
+    ) if len(val_files) > 0 else None
+    test_data_loader = torch.utils.data.DataLoader(
+        dataset=AbstractDataset(test_files, config, mode='test'),
+        batch_size=config["dataset"]["train"]['batch_size'],
+        shuffle=False,
+        num_workers=int(config["dataset"]["train"]['workers'])
+    ) if len(test_files) > 0 else None
+    return train_data_loader, val_data_loader, test_data_loader
 
 
-def prepare_test_data(config):
-    test_files = load_test(config)
+def prepare_test_data(config, logger):
+    test_files = load_test(config, logger)
     train_data_loader = torch.utils.data.DataLoader(
         dataset=AbstractDataset(test_files, config, mode='test'),
         batch_size=config["dataset"]["test"]['batch_size'],
@@ -66,12 +78,14 @@ def choose_optimizer(model, config):
     elif opt_name == 'adam':
         base_optimizer_class = optim.Adam
 
-    if add_name == 'sam':
+    if add_name == 'sam' or add_name == 'sam+is-sam':
         optimizer = SAM(
             model.feature_params(),
             model.classifier_params(),
             base_optimizer_class,
-            **config['optimizer'][add_name], **config['optimizer'][opt_name]
+            config['optimizer']['sam']["rho"],
+            config['optimizer']['sam']["affect_classifier"],
+            **config['optimizer'][opt_name]
         )
     else:
         optimizer = base_optimizer_class(
@@ -112,22 +126,26 @@ def choose_scheduler(config, optimizer):
 def get_weight(data_loader: DataLoader):
     fake_cnt = data_loader.dataset.fake_cnt
     real_cnt = data_loader.dataset.real_cnt
-    return [real_cnt / min(fake_cnt, real_cnt),
-            fake_cnt / min(fake_cnt, real_cnt)]
+    if min(fake_cnt, real_cnt):
+        return [(real_cnt + fake_cnt) / real_cnt,
+                (real_cnt + fake_cnt) / fake_cnt]
+    else:
+        return [1., 1.]
 
 
 def train(config):
     time_now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    log_dir = os.path.join(config['log_dir'],config['model_name'], config['dataset']["train"]["name"], time_now)
+    log_dir = os.path.join(config['log_dir'], config['model_name'], config['dataset']["train"]["name"], time_now)
     os.makedirs(log_dir, exist_ok=True)
     logger = create_logger(os.path.join(log_dir, 'training.log'))
-    logger.info("--------------- Configuration ---------------")
+    logger.info("--------------- Global Configuration ---------------")
     params_string = "Parameters: \n"
     for key, value in config.items():
         params_string += "{}: {}".format(key, value) + "\n"
     logger.info(params_string)
 
-    train_data_loader, val_data_loader = prepare_train_data(config)
+    train_data_loader, val_data_loader, test_data_loader = prepare_train_data(config, logger)
+    logger.info("--------------- Train Configuration ---------------")
     logger.info(f"Train set:")
     logger.info(f"  - fake: {train_data_loader.dataset.fake_cnt:,}")
     logger.info(f"  - real: {train_data_loader.dataset.real_cnt:,}")
@@ -168,6 +186,18 @@ def train(config):
     logger.info(f"Stop Training on best Testing metric epoch:{epoch}, acc:{acc}, loss:{loss}")
     close_logger(logger)
 
+    if config["dataset"]["train"]["type"] == "in-domain":
+        logger.info("--------------- In-domain Test Configuration ---------------")
+        logger.info(f"Test set:")
+        logger.info(f"  - fake: {test_data_loader.dataset.fake_cnt:,}")
+        logger.info(f"  - real: {test_data_loader.dataset.real_cnt:,}")
+        logger.info(f"  - total: {test_data_loader.dataset.fake_cnt + test_data_loader.dataset.real_cnt:,}")
+
+        tester = Tester(config, model, logger, log_dir=os.path.join(log_dir, 'in-domain'))
+        tester.test(test_data_loader)
+        logger.info(f"Test finished!")
+
+    close_logger(logger)
     return log_dir
 
 
@@ -181,7 +211,7 @@ def test(config, train_dir):
         params_string += "{}: {}".format(key, value) + "\n"
     logger.info(params_string)
 
-    test_data_loader = prepare_test_data(config)
+    test_data_loader = prepare_test_data(config, logger)
 
     logger.info(f"Train set:")
     logger.info(f"  - fake: {test_data_loader.dataset.fake_cnt:,}")
@@ -198,6 +228,7 @@ def test(config, train_dir):
     logger.info(f"Test finished!")
     close_logger(logger)
 
+
 def run(config_path):
     # parse options and load config
     with open(config_path, 'r') as f:
@@ -210,12 +241,36 @@ def run(config_path):
 
     for train_dataset_config_path in config["train_dataset_configs"]:
         with open(train_dataset_config_path, 'r') as f:
-            config["dataset"]["train"] = yaml.safe_load(f)
+            config["dataset"]["train"] = config["dataset"]["test"] = yaml.safe_load(f)
         train_dir = train(config)
-        for test_dataset_config_path in config["test_dataset_configs"]:
-            with open(test_dataset_config_path, 'r') as f:
-                config["dataset"]["test"] = yaml.safe_load(f)
-            test(config, train_dir)
-        
+        if config["dataset"]["train"]["type"] == "cross-domain":
+            for test_dataset_config_path in config["test_dataset_configs"]:
+                with open(test_dataset_config_path, 'r') as f:
+                    config["dataset"]["test"] = yaml.safe_load(f)
+                test(config, train_dir)
+
+
+RUNS = [
+    # "config/run_coatnet.yaml",
+    # "config/run_coatnet_sam.yaml",
+    # "config/run_coatnet_is_sam.yaml",
+    # "config/run_coatnet_sam_is_sam.yaml",
+    "config/run_resnet50.yaml",
+    "config/run_resnet50_sam.yaml",
+    "config/run_resnet50_is_sam.yaml",
+    "config/run_resnet50_sam_is_sam.yaml"
+]
+
 if __name__ == '__main__':
-    run("config/run_resnet50.yaml")
+    with open("./log/errors.log", 'a') as f:
+        for run_config in RUNS:
+            f.write(f"Runing {run_config} at {datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}")
+            try:
+                run(run_config)
+            except Exception as e:
+                print("Error!")
+                traceback.print_tb(e.__traceback__, file=f)
+                raise e
+        f.write("Finished!")
+        print("Finished!")
+    # os.system("/usr/bin/shutdown")

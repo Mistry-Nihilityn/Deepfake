@@ -38,6 +38,16 @@ class AbstractBackbone(abc.ABC):
         """
         """
 
+    @abc.abstractmethod
+    def feature_params(self) -> Iterable[Parameter]:
+        """
+        """
+
+    @abc.abstractmethod
+    def classifier_params(self) -> Iterable[Parameter]:
+        """
+        """
+
     def init_weights(self, pretrained_path: Union[bool, str]):
         """
         This method can be optionally implemented by subclasses.

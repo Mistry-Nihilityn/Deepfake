@@ -1,3 +1,5 @@
+from typing import Optional, Callable
+
 import torch
 from torch import nn
 
@@ -24,7 +26,7 @@ class SAM(torch.optim.Optimizer):
                     continue
                 self.state[p]["old_p"] = p.data.clone()
                 e_w = p.grad * scale
-                p.add_(e_w)  # 向梯度方向扰动参数
+                p.add_(e_w)
         if zero_grad:
             self.zero_grad()
 
@@ -40,11 +42,15 @@ class SAM(torch.optim.Optimizer):
         if zero_grad:
             self.zero_grad()
 
+    def step(self, **kwargs):
+        self.base_optimizer.step()
+
     def _grad_norm(self):
+        params = self.all_params if self.affect_classifier else self.feature_params
         norm = torch.norm(
             torch.stack([
                 p.grad.norm(p=2)
-                for group in self.param_groups for p in group["params"]
+                for group in params for p in group["params"]
                 if p.grad is not None
             ]),
             p=2

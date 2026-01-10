@@ -1,0 +1,11 @@
+name: styleclip
+
+root: ../dataset
+domain: [ff]
+real_dataset_names: [ styleclip ]
+fake_dataset_names: [ styleclip ]
+batch_size: 128
+workers: 8
+balance: false
+split:
+  test: 1.0

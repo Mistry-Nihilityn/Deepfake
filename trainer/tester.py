@@ -17,7 +17,7 @@ sys.path.append(project_root_dir)
 import numpy as np
 from tqdm import tqdm
 import torch
-
+import pandas as pd
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -64,12 +64,11 @@ class Tester(object):
         plt.tight_layout()
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
-
         return eer
 
     def _plot_confusion_matrix(self, all_labels, all_preds, save_path):
         cm = confusion_matrix(all_labels, all_preds)
-        class_names = ['Fake', 'Real']
+        class_names = ['Real', 'Fake']
 
         fig, ax = plt.subplots(figsize=(10, 8))
         disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
@@ -106,37 +105,51 @@ class Tester(object):
         all_preds = []
         all_labels = []
         all_probs = []
-
-        start_time = datetime.now()
+        all_paths = []
 
         with torch.no_grad():
             train_pbar = tqdm(enumerate(test_data_loader), desc=f"Testing",
                               leave=False, total=len(test_data_loader))
             for iteration, data in train_pbar:
-                x, label = data
+                paths, x, label = data
                 label = label.to(device)
 
-                logits = self.inference(data)
+                logits = self.inference((x, label))
                 probs = torch.softmax(logits, dim=1)
                 preds = torch.argmax(logits, dim=1)
 
                 all_preds.extend(preds.cpu().numpy())
                 all_labels.extend(label.cpu().numpy())
                 all_probs.extend(probs[:, 1].cpu().numpy())
-
-        test_duration = datetime.now() - start_time
+                all_paths.extend(paths)
 
         all_preds = np.array(all_preds)
         all_labels = np.array(all_labels)
         all_probs = np.array(all_probs)
 
+        results_df = pd.DataFrame({
+            'path': all_paths,
+            'true_label': all_labels,
+            'pred_label': all_preds,
+            'pred_prob_0': 1 - all_probs,
+            'pred_prob_1': all_probs,
+            'correct': (all_preds == all_labels).astype(int)
+        })
+
+        results_df['true_label_name'] = results_df['true_label'].apply(lambda x: 'real' if x == 0 else 'fake')
+        results_df['pred_label_name'] = results_df['pred_label'].apply(lambda x: 'real' if x == 0 else 'fake')
+
+        results_csv_path = os.path.join(self.log_dir, "test_results.csv")
+        results_df.to_csv(results_csv_path, index=False, encoding='utf-8')
+        self.logger.info(f"所有测试结果已保存到: {results_csv_path}")
+
         metrics = {}
         accuracy = accuracy_score(all_labels, all_preds)
-        metrics['ACC'] = accuracy.item()
+        metrics['ACC'] = accuracy
 
         try:
             auc_score = roc_auc_score(all_labels, all_probs)
-            metrics['AUC'] = auc_score.item()
+            metrics['AUC'] = auc_score
         except:
             auc_score = 0.0
             metrics['AUC'] = 0.0
@@ -144,45 +157,45 @@ class Tester(object):
         fpr, tpr, thresholds = roc_curve(all_labels, all_probs)
 
         f1 = f1_score(all_labels, all_preds, average='binary')
-        metrics['F1'] = f1.item()
+        metrics['F1'] = f1
 
         precision = precision_score(all_labels, all_preds, average='binary')
         recall = recall_score(all_labels, all_preds, average='binary')
-        metrics['Precision'] = precision.item()
-        metrics['Recall'] = recall.item()
+        metrics['Precision'] = precision
+        metrics['Recall'] = recall
 
         tn, fp, fn, tp = confusion_matrix(all_labels, all_preds).ravel()
-        metrics['TP'] = int(tp.item())
-        metrics['FP'] = int(fp.item())
-        metrics['FN'] = int(fn.item())
-        metrics['TN'] = int(tn.item())
+        metrics['TP'] = int(tp)
+        metrics['FP'] = int(fp)
+        metrics['FN'] = int(fn)
+        metrics['TN'] = int(tn)
 
         tpr_val = tp / (tp + fn) if (tp + fn) > 0 else 0
         fpr_val = fp / (fp + tn) if (fp + tn) > 0 else 0
-        metrics['TPR'] = tpr_val.item()
-        metrics['FPR'] = fpr_val.item()
+        metrics['TPR'] = tpr_val
+        metrics['FPR'] = fpr_val
 
         # 计算平衡准确率
         real_acc = tn / (tn + fp) if (tn + fp) > 0 else 0
         fake_acc = tp / (tp + fn) if (tp + fn) > 0 else 0
         balanced_acc = (real_acc + fake_acc) / 2
-        metrics['Balanced_ACC'] = balanced_acc.item()
+        metrics['Balanced_ACC'] = balanced_acc
 
         ap = average_precision_score(all_labels, all_probs)
-        metrics['AP'] = ap.item()
+        metrics['AP'] = ap
 
         labels_one_hot = np.eye(2)[all_labels.astype(int)]
         probs_matrix = np.column_stack([1 - all_probs, all_probs])
         log_loss_value = log_loss(labels_one_hot, probs_matrix)
-        metrics['Log_Loss'] = log_loss_value.item()
+        metrics['Log_Loss'] = log_loss_value
 
         eer = self._calculate_eer(fpr, tpr)
-        metrics['EER'] = eer.item()
+        metrics['EER'] = eer
 
         best_threshold, best_tpr, best_fpr = self._calculate_best_threshold(fpr, tpr, thresholds)
-        metrics['Best_Threshold'] = best_threshold.item()
-        metrics['Best_TPR'] = best_tpr.item()
-        metrics['Best_FPR'] = best_fpr.item()
+        metrics['Best_Threshold'] = best_threshold
+        metrics['Best_TPR'] = best_tpr
+        metrics['Best_FPR'] = best_fpr
 
         roc_curve_path = os.path.join(self.log_dir, "roc_curve.png")
         confusion_matrix_path = os.path.join(self.log_dir, "confusion_matrix.png")

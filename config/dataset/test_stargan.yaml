@@ -1,0 +1,11 @@
+name: stargan
+
+root: ../dataset
+domain: [ff]
+real_dataset_names: [ stargan ]
+fake_dataset_names: [ stargan ]
+batch_size: 128
+workers: 8
+balance: false
+split:
+  test: 1.0

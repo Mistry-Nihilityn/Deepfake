@@ -4,17 +4,25 @@ num_classes: 2
 log_dir: ./log
 seed: 42
 train_dataset_configs: [
-  config\dataset\train_dataset_config_1.yaml,
+  config/dataset/in-train-batch128.yaml,
+  config/dataset/cross-train-batch128.yaml,
 ]
 
 test_dataset_configs: [
-  config\dataset\test_dataset_config_1.yaml,
-  config\dataset\test_dataset_config_2.yaml
+  config/dataset/test_DiT_ff.yaml,
+  config/dataset/test_heygen_ff.yaml,
+  config/dataset/test_heygen_new.yaml,
+  config/dataset/test_lia_ff.yaml,
+  config/dataset/test_SageMaker.yaml,
+  config/dataset/test_simswap_ff.yaml,
+  config/dataset/test_stargan.yaml,
+  config/dataset/test_starganv2.yaml,
+  config/dataset/test_styleclip.yaml,
 ]
 
 # mean and std for normalization
-mean: [0.5, 0.5, 0.5]
-std: [0.5, 0.5, 0.5]
+mean: [0.485, 0.456, 0.406]
+std: [0.229, 0.224, 0.225]
 
 # optimizer config
 optimizer:
@@ -30,12 +38,13 @@ optimizer:
   sam:
     rho: 0.05
     affect_classifier: false
+    start_epoch: 2
 
 # training config
 resolution: 224   # resolution of output image to network
 lr_scheduler: step   # learning rate scheduler
-lr_step: 2
-lr_gamma: 0.5
+lr_step: 7
+lr_gamma: 0.1
 n_epochs: 15   # number of epochs to train for
 start_epoch: 0   # manual epoch number
 

@@ -45,6 +45,3 @@ def close_logger(logger):
         handler.close()
         logger.removeHandler(handler)
 
-    logger.disabled = True
-    logger.manager.disable = logging.CRITICAL
-

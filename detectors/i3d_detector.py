@@ -1,4 +1,4 @@
-config_text = """
+config_text = r"""
 TRAIN:
   ENABLE: True
   DATASET: kinetics
@@ -58,7 +58,7 @@ OUTPUT_DIR: .
 """
 
 
-'''
+r'''
 # author: Zhiyuan Yan
 # email: zhiyuanyan@link.cuhk.edu.cn
 # date: 2023-0706

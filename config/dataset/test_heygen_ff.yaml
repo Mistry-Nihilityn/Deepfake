@@ -1,0 +1,11 @@
+name: heygen
+
+root: ../dataset
+domain: [ff]
+real_dataset_names: [ FaceForensics++ ]
+fake_dataset_names: [ heygen ]
+batch_size: 128
+workers: 8
+balance: true
+split:
+  test: 1.0

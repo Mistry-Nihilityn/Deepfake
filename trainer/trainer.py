@@ -59,16 +59,38 @@ class Trainer(object):
         self.model.eval()
         self.training = False
 
-    def train_step(self, data):
+    def train_step(self, data, epoch):
         x, label = data
         x = x.to(device)
         label = label.to(device)
-        if self.config['optimizer']['additional']=='sam':
+
+        use_sam = (self.config['optimizer']['additional'] in ['sam', "sam+is-sam"] and
+                   self.config['optimizer']['sam']["start_epoch"] <= epoch)
+        use_is_sam = (self.config['optimizer']['additional'] in ['is-sam', "sam+is-sam"] and
+                      self.config['optimizer']['sam']["start_epoch"] <= epoch)
+
+        x_original = x.clone().detach()
+        if use_is_sam:
+            x.requires_grad = True
             predictions = self.model(x)
             loss = self.model.get_losses(label, predictions)
             self.optimizer.zero_grad()
-            pred_first = predictions
-            loss_first = loss
+            loss.backward()
+
+            with torch.no_grad():
+                grad = x.grad.data
+                grad_norm = torch.norm(grad.view(grad.size(0), -1), p=2, dim=1).view(-1, 1, 1, 1) + 1e-8
+                grad_normalized = grad / grad_norm
+                x_perturbed = x_original + self.config['optimizer']['is-sam']['rho'] * grad_normalized
+                x_perturbed = torch.clamp(x_perturbed, 0, 1)
+
+            x = x_perturbed
+            x.requires_grad = False
+
+        if use_sam:
+            predictions = self.model(x)
+            loss = self.model.get_losses(label, predictions)
+            self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.first_step(zero_grad=True)
 
@@ -76,34 +98,59 @@ class Trainer(object):
             loss = self.model.get_losses(label, predictions)
             loss.backward()
             self.optimizer.second_step(zero_grad=True)
-            return loss_first, pred_first
         else:
             predictions = self.model(x)
             loss = self.model.get_losses(label, predictions)
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-            return loss, predictions
+
+        return loss, predictions
 
     def train_epoch(
-        self,
-        epoch,
-        train_data_loader,
-        val_data_loaders=None,
-        ):
+            self,
+            epoch,
+            train_data_loader,
+            val_data_loaders=None,
+    ):
 
         self.logger.info("===> Epoch[{}] start, lr= {:.4e}".format(epoch, self.optimizer.param_groups[0]['lr']))
         step_cnt = epoch * len(train_data_loader)
 
-        # save the training data_dict
-        train_pbar = tqdm(enumerate(train_data_loader), desc=f"Training epoch {epoch}", leave=False, total=len(train_data_loader))
+        total_loss = 0
+        total_correct = 0
+        total_samples = 0
+
+        train_pbar = tqdm(enumerate(train_data_loader), desc=f"Training epoch {epoch}", leave=False,
+                          total=len(train_data_loader))
         self.set_train()
+
         for iteration, data in train_pbar:
-            loss, pred = self.train_step(data)
-            train_pbar.set_postfix({'loss': f'{loss.detach().cpu().mean():.4f}'})
+            x, label = data
+
+            loss, pred = self.train_step(data, epoch)
+
+            _, predicted = torch.max(pred, 1)
+            correct = (predicted.to(device) == label.to(device)).sum().item()
+
+            total_correct += correct
+            total_samples += label.size(0)
+            total_loss += loss.detach().cpu().mean().item()
+
+            batch_acc = correct / label.size(0)
+            train_pbar.set_postfix({
+                'loss': f'{loss.detach().cpu().mean():.4f}',
+                'acc': f'{batch_acc:.4f}'
+            })
+
             step_cnt += 1
 
+        avg_loss = total_loss / len(train_data_loader)
+        avg_acc = total_correct / total_samples
+
+        self.logger.info(f"===> Epoch[{epoch}] Train - Loss: {avg_loss:.4f}, Acc: {avg_acc:.4f}")
         self.logger.info("===> Test start!")
+
         metric = self.val_epoch(epoch, val_data_loaders)
 
         return metric
@@ -112,6 +159,7 @@ class Trainer(object):
         loss_list = []
         prediction_lists = []
         label_lists = []
+        self.set_eval()
         for i, data in tqdm(enumerate(data_loader),total=len(data_loader)):
             x, label = data
             predictions = self.inference(data)

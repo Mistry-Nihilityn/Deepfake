@@ -1,0 +1,61 @@
+model_name: coatnet_2 # model name
+backbone_name: coatnet_2  # backbone name
+num_classes: 2
+log_dir: ./log
+seed: 42
+train_dataset_configs: [
+  config/dataset/in-train-batch32.yaml,
+  config/dataset/cross-train-batch32.yaml,
+]
+
+test_dataset_configs: [
+  config/dataset/test_DiT_ff.yaml,
+  config/dataset/test_heygen_ff.yaml,
+  config/dataset/test_heygen_new.yaml,
+  config/dataset/test_lia_ff.yaml,
+  config/dataset/test_SageMaker.yaml,
+  config/dataset/test_simswap_ff.yaml,
+  config/dataset/test_stargan.yaml,
+  config/dataset/test_starganv2.yaml,
+  config/dataset/test_styleclip.yaml,
+]
+
+# mean and std for normalization
+mean: [0.485, 0.456, 0.406]
+std: [0.229, 0.224, 0.225]
+
+# optimizer config
+optimizer:
+  # choose between 'adam' and 'sgd'
+  base: adam
+  additional: null
+  adam:
+    lr: 0.001  # learning rate
+    betas: [0.9, 0.999]  # betas for Adam optimizer
+    eps: 0.00000001  # epsilon for Adam optimizer
+    weight_decay: 0.0001  # weight decay for regularization
+    amsgrad: false
+  sam:
+    rho: 0.05
+    affect_classifier: false
+    start_epoch: 2
+  is-sam:
+    rho: 0.05
+    start_epoch: 2
+
+# training config
+resolution: 224   # resolution of output image to network
+lr_scheduler: step   # learning rate scheduler
+lr_step: 7
+lr_gamma: 0.1
+n_epochs: 15   # number of epochs to train for
+start_epoch: 0   # manual epoch number
+
+# loss function
+loss_func: cross_entropy   # loss function to use
+losstype: null
+
+# metric
+metric_scoring: auc   # metric for evaluation (auc, acc, eer, ap)
+cuda: true   # whether to use CUDA acceleration
+cudnn: true   # whether to use CuDNN for convolution operations

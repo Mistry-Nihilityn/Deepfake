@@ -1,5 +1,7 @@
 import sys
 
+import torch
+
 sys.path.append('.')
 import os
 
@@ -10,12 +12,7 @@ import random
 from PIL import Image
 
 from torch.utils import data
-from torchvision import transforms as T
-
-import albumentations as A
-
-from dataset.albu import IsotropicResize
-
+from torchvision import transforms as T, transforms
 
 class AbstractDataset(data.Dataset):
     def __init__(self, images, config, mode='train'):
@@ -25,13 +22,17 @@ class AbstractDataset(data.Dataset):
         if self.config['dataset']["train" if mode == "train" or mode == "val" else "test"].get("balance", False):
             random.shuffle(images["real"])
             random.shuffle(images["fake"])
-            # l = 32
             l = min(len(images["real"]), len(images["fake"]))
             images["real"] = images["real"][:l]
             images["fake"] = images["fake"][:l]
 
+        # l = 256
+        # images["real"] = images["real"][:l]
+        # images["fake"] = images["fake"][:l]
+
         self.real_cnt = len(images["real"])
         self.fake_cnt = len(images["fake"])
+        print(self.real_cnt, self.fake_cnt)
         self.image_list = images["real"] + images["fake"]
         self.label_list = [0] * len(images["real"]) + [1] * len(images["fake"])
         self.transform = self.init_data_aug_method()
@@ -39,63 +40,25 @@ class AbstractDataset(data.Dataset):
     def init_data_aug_method(self):
         if self.config["dataset"]["train"]["use_data_augmentation"]:
             aug_config = self.config["dataset"]["train"]['data_aug']
-            trans = A.Compose([
-                A.HorizontalFlip(p=aug_config['flip_prob']),
-                A.Rotate(limit=aug_config['rotate_limit'], p=aug_config['rotate_prob']),
-                A.GaussianBlur(blur_limit=aug_config['blur_limit'], p=aug_config['blur_prob']),
-                A.OneOf([
-                    IsotropicResize(
-                        max_side=self.config['resolution'],
-                        interpolation_down=cv2.INTER_AREA,
-                        interpolation_up=cv2.INTER_CUBIC
-                    ),
-                    IsotropicResize(
-                        max_side=self.config['resolution'],
-                        interpolation_down=cv2.INTER_AREA,
-                        interpolation_up=cv2.INTER_LINEAR
-                    ),
-                    IsotropicResize(
-                        max_side=self.config['resolution'],
-                        interpolation_down=cv2.INTER_LINEAR,
-                        interpolation_up=cv2.INTER_LINEAR
-                    ),
-                ], p=1),
-                A.OneOf([
-                    A.RandomBrightnessContrast(
-                        brightness_limit=aug_config['brightness_limit'],
-                        contrast_limit=aug_config['contrast_limit'],
-                        p=1.0
-                    ),
-                    A.FancyPCA(p=1.0),
-                    A.HueSaturationValue(p=1.0)
-                ], p=0.5),
-                A.ImageCompression(
-                    quality_lower=aug_config['quality_lower'],
-                    quality_upper=aug_config['quality_upper'],
-                    p=0.5
-                )
-            ],
-                keypoint_params=None
-            )
-            # trans = A.Compose([])
+            trans = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Resize(self.config['resolution']),
+                transforms.CenterCrop(self.config['resolution']),
+                transforms.RandomHorizontalFlip(p=aug_config['flip_prob']),
+                transforms.ColorJitter(
+                    brightness=aug_config['brightness_limit'],
+                    contrast=aug_config['contrast_limit'],
+                    saturation=aug_config['saturation_limit'],
+                    hue=aug_config['hue_limit']
+                ),
+            ])
+
         else:
-            trans = A.OneOf([
-                IsotropicResize(
-                    max_side=self.config['resolution'],
-                    interpolation_down=cv2.INTER_AREA,
-                    interpolation_up=cv2.INTER_CUBIC
-                ),
-                IsotropicResize(
-                    max_side=self.config['resolution'],
-                    interpolation_down=cv2.INTER_AREA,
-                    interpolation_up=cv2.INTER_LINEAR
-                ),
-                IsotropicResize(
-                    max_side=self.config['resolution'],
-                    interpolation_down=cv2.INTER_LINEAR,
-                    interpolation_up=cv2.INTER_LINEAR
-                ),
-            ], p=1)
+            trans = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Resize(self.config['resolution']),
+                transforms.CenterCrop(self.config['resolution']),
+            ])
         return trans
 
     def load_rgb(self, file_path):
@@ -112,6 +75,8 @@ class AbstractDataset(data.Dataset):
         return Image.fromarray(np.array(img, dtype=np.uint8))
 
     def to_tensor(self, img):
+        if isinstance(img, torch.Tensor):
+            return img
         return T.ToTensor()(img)
 
     def normalize(self, img):
@@ -125,11 +90,7 @@ class AbstractDataset(data.Dataset):
             random.seed(augmentation_seed)
             np.random.seed(augmentation_seed)
 
-        kwargs = {'image': img}
-
-        transformed = self.transform(**kwargs)
-
-        augmented_img = transformed['image']
+        augmented_img = self.transform(img)
 
         if augmentation_seed is not None:
             random.seed()
@@ -157,7 +118,10 @@ class AbstractDataset(data.Dataset):
         if not no_norm:
             image_trans = self.normalize(self.to_tensor(image_trans))
 
-        return image_trans, label
+        if self.mode == "test":
+            return image_path, image_trans, label
+        else:
+            return image_trans, label
 
     def __len__(self):
         assert len(self.image_list) == len(self.label_list), 'Number of images and labels are not equal'

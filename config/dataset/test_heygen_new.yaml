@@ -1,0 +1,11 @@
+name: heygen_new
+
+root: ../dataset
+domain: [ff]
+real_dataset_names: [ heygen_new ]
+fake_dataset_names: [ heygen_new ]
+batch_size: 128
+workers: 8
+balance: false
+split:
+  test: 1.0

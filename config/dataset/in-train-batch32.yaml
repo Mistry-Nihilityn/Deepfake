@@ -1,0 +1,22 @@
+name: train1
+root: ../dataset
+type: in-domain
+domain: [ff]
+real_dataset_names: [FaceForensics++, deepfacelab]
+fake_dataset_names: [deepfacelab, StyleGAN2, fsgan, faceswap]
+batch_size: 32
+workers: 8
+balance: false
+split:
+  train: 0.7
+  val: 0.1
+  test: 0.2
+
+# data augmentation
+use_data_augmentation: true  # Add this flag to enable/disable data augmentation
+data_aug:
+  flip_prob: 0.5
+  brightness_limit: 0.1
+  contrast_limit: 0.1
+  saturation_limit: 0.1
+  hue_limit: 0.05
