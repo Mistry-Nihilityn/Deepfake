@@ -21,6 +21,7 @@ from optimizor.SAM import SAM
 from prepare_data import load_train, load_test
 from trainer.tester import Tester
 from trainer.trainer import Trainer
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def init_seed(config):
@@ -159,7 +160,7 @@ def train(config):
     logger.info(f"Weight: {config['dataset']['weight']}")
 
     model_class = DETECTOR[config['model_name']]
-    model = model_class(config)
+    model = model_class(config).to(device)
 
     optimizer = choose_optimizer(model, config)
     scheduler = choose_scheduler(config, optimizer)
@@ -221,7 +222,7 @@ def test(config, train_dir):
     model_class = DETECTOR[config['model_name']]
     model = model_class(config)
     model.load_state_dict(torch.load(os.path.join(train_dir, 'best_model.pth')), strict=False)
-
+    model = model.to(device)
     tester = Tester(config, model, logger, log_dir=log_dir)
     tester.test(test_data_loader)
 
@@ -251,14 +252,14 @@ def run(config_path):
 
 
 RUNS = [
-    # "config/run_coatnet.yaml",
-    # "config/run_coatnet_sam.yaml",
-    # "config/run_coatnet_is_sam.yaml",
-    # "config/run_coatnet_sam_is_sam.yaml",
-    "config/run_resnet50.yaml",
-    "config/run_resnet50_sam.yaml",
-    "config/run_resnet50_is_sam.yaml",
-    "config/run_resnet50_sam_is_sam.yaml"
+    "config/run_coatnet.yaml",
+    "config/run_coatnet_sam.yaml",
+    "config/run_coatnet_is_sam.yaml",
+    "config/run_coatnet_sam_is_sam.yaml",
+    # "config/run_resnet50.yaml",
+    # "config/run_resnet50_sam.yaml",
+    # "config/run_resnet50_is_sam.yaml",
+    # "config/run_resnet50_sam_is_sam.yaml"
 ]
 
 if __name__ == '__main__':
@@ -270,7 +271,7 @@ if __name__ == '__main__':
             except Exception as e:
                 print("Error!")
                 traceback.print_tb(e.__traceback__, file=f)
-                raise e
+                # raise e
         f.write("Finished!")
         print("Finished!")
-    # os.system("/usr/bin/shutdown")
+    os.system("/usr/bin/shutdown")

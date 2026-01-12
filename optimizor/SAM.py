@@ -5,21 +5,22 @@ from torch import nn
 
 
 class SAM(torch.optim.Optimizer):
-    def __init__(self, feature_params, classifier_params, base_optimizer, rho=0.05, affect_classifier=False, **kwargs):
+    def __init__(self, feature_params, classifier_params, base_optimizer_class, rho=0.05, affect_classifier=False, **kwargs):
         assert rho >= 0.0, f"Invalid rho: {rho}"
         defaults = dict(rho=rho, **kwargs)
         self.affect_classifier = affect_classifier
-        self.feature_params = [{"params": params} for params in feature_params]
-        self.all_params = [{"params": params} for params in list(feature_params) + list(classifier_params)]
+        feature_params = [{"params": params, "type": "feature"} for params in feature_params]
+        classifier_params = [{"params": params, "type": "classifier"} for params in classifier_params]
         self.rho = rho
-        super(SAM, self).__init__(self.all_params, defaults)
-        self.base_optimizer = base_optimizer(self.param_groups, **kwargs)
+        super(SAM, self).__init__(feature_params + classifier_params, defaults)
+        self.base_optimizer = base_optimizer_class(self.param_groups, **kwargs)
 
     @torch.no_grad()
     def first_step(self, zero_grad=False):
         grad_norm = self._grad_norm()
-        params = self.all_params if self.affect_classifier else self.feature_params
-        for group in params:
+        for group in self.param_groups:
+            if not self.affect_classifier and group["type"] == "classifier":
+                continue
             scale = self.rho / (grad_norm + 1e-12)
             for p in group["params"]:
                 if p.grad is None:
@@ -32,8 +33,9 @@ class SAM(torch.optim.Optimizer):
 
     @torch.no_grad()
     def second_step(self, zero_grad=False):
-        params = self.all_params if self.affect_classifier else self.feature_params
-        for group in params:
+        for group in self.param_groups:
+            if not self.affect_classifier and group["type"] == "classifier":
+                continue
             for p in group["params"]:
                 if p.grad is None:
                     continue
@@ -46,7 +48,7 @@ class SAM(torch.optim.Optimizer):
         self.base_optimizer.step()
 
     def _grad_norm(self):
-        params = self.all_params if self.affect_classifier else self.feature_params
+        params = [group for group in self.param_groups if not (group["type"] == "classifier" and not self.affect_classifier)]
         norm = torch.norm(
             torch.stack([
                 p.grad.norm(p=2)

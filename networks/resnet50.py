@@ -19,14 +19,14 @@ class ResNet50(nn.Module, AbstractBackbone):
         return self.resnet.parameters()
 
     def classifier_params(self):
-        yield self.fc.parameters()
+        return self.fc.parameters()
 
-    def classifier(self, features: torch.tensor) -> torch.tensor:
+    def classifier(self, features: torch.Tensor) -> torch.Tensor:
         return self.fc(features)
 
-    def __init__(self, num_classes=2):
+    def __init__(self, num_classes=2, pretrained=True):
         super().__init__()
-        self.resnet = models.resnet50(pretrained=True)
+        self.resnet = models.resnet50(pretrained=pretrained)
         num_features = self.resnet.fc.in_features  # 2048 for ResNet50
         self.resnet.fc = nn.Sequential()  # 2 outputs: fake (0) or real (1)
         self.fc = nn.Linear(num_features, num_classes, bias=False)
@@ -39,7 +39,7 @@ class ResNet50(nn.Module, AbstractBackbone):
 
 @BACKBONE.register_module("resnet50")
 def resnet50(config):
-    return ResNet50(num_classes=config["num_classes"])
+    return ResNet50(num_classes=config["num_classes"], pretrained=config["pretrained"])
 
 
 def count_parameters(model):

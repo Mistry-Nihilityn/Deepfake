@@ -1,6 +1,9 @@
 import copy
 import os
 import sys
+
+from detectors.base_detector import AbstractDetector
+
 current_file_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(os.path.dirname(current_file_path))
 project_root_dir = os.path.dirname(parent_dir)
@@ -33,7 +36,7 @@ class Trainer(object):
             raise ValueError("config, model, optimizier, logger, and tensorboard writer must be implemented")
 
         self.config = config
-        self.model = model
+        self.model: AbstractDetector = model
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.swa_model = swa_model
@@ -124,6 +127,12 @@ class Trainer(object):
         train_pbar = tqdm(enumerate(train_data_loader), desc=f"Training epoch {epoch}", leave=False,
                           total=len(train_data_loader))
         self.set_train()
+        if epoch<=self.config.get("backbone_freeze_epoch", 0):
+            for p in self.model.feature_params():
+                p.requires_grad = False
+        else:
+            for p in self.model.feature_params():
+                p.requires_grad = True
 
         for iteration, data in train_pbar:
             x, label = data

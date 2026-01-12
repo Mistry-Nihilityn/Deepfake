@@ -21,7 +21,7 @@ class ResNetDetector(AbstractDetector):
         backbone_class = BACKBONE[config['backbone_name']]
         backbone = backbone_class(config)
         # if donot load the pretrained weights, fail to get good results
-        if 'pretrained' in config:
+        if 'pretrained' in config and isinstance(config['pretrained'], str):
             state_dict = torch.load(config['pretrained'])
             for name, weights in state_dict.items():
                 if 'pointwise' in name:

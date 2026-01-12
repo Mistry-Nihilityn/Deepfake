@@ -13,5 +13,5 @@ from .mesonet import Meso4, MesoInception4
 from .resnet34 import ResNet34
 from .efficientnetb4 import EfficientNetB4
 from .xception_sladd import Xception_SLADD
-from .coatnet import coatnet_0,coatnet_1,coatnet_2,coatnet_3,coatnet_4
+from .coatnet import coatnet_2
 from .resnet50 import ResNet50
