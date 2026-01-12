@@ -15,3 +15,4 @@ from .efficientnetb4 import EfficientNetB4
 from .xception_sladd import Xception_SLADD
 from .coatnet import coatnet_2
 from .resnet50 import ResNet50
+from .dinov3 import DINOv3

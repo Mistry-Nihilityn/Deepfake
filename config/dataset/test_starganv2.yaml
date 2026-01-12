@@ -1,7 +1,7 @@
 name: starganv2
 
 root: ../dataset
-domain: [ff]
+domain: [ff, cdf]
 real_dataset_names: [ starganv2 ]
 fake_dataset_names: [ starganv2 ]
 batch_size: 128

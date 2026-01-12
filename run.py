@@ -13,7 +13,7 @@ import torch.utils.data
 import yaml
 from torch.utils.data import DataLoader
 
-from dataset.AbstractDataset import AbstractDataset
+from dataset.DeepfakeDataset import TrainDataset, TestDataset
 from detectors import DETECTOR
 from logger import create_logger, close_logger
 from optimizor.LinearLR import LinearDecayLR
@@ -34,40 +34,83 @@ def init_seed(config):
         torch.cuda.manual_seed_all(config['seed'])
 
 
+def get_length(files, label):
+    return sum(list(map(lambda x: len(x[label]), files.values())))
+
+
 def prepare_train_data(config, logger):
     train_files, val_files, test_files = load_train(config, logger)
-    print(len(train_files["real"]), len(train_files["fake"]), len(val_files["real"]), len(val_files["fake"]),
-          len(test_files["real"]), len(test_files["fake"]))
+    data_config = config["dataset"]["train"]
+
+    logger.info(f"{'Preparing Data Loader':=^50}")
+    logger.info(f"Train: {get_length(train_files, 'real')} real, {get_length(train_files, 'fake')} fake.")
+    logger.info(f"Validate: {get_length(val_files, 'real')} real, {get_length(val_files, 'fake')} fake.")
+    logger.info(f"Test: {get_length(test_files, 'real')} real, {get_length(test_files, 'fake')} fake.")
+
     train_data_loader = torch.utils.data.DataLoader(
-        dataset=AbstractDataset(train_files, config, mode='train'),
-        batch_size=config["dataset"]["train"]['batch_size'],
-        shuffle=True,
-        num_workers=int(config["dataset"]["train"]['workers'])
-    ) if len(train_files) > 0 else None
+            dataset=TrainDataset(
+                train_files,
+                resolution=config['resolution'],
+                balance=data_config['balance'],
+                sample_per_class=data_config['sample_per_class'],
+                augment_config=config['data_aug'] if config['use_data_augmentation'] else None,
+                mean=config['mean'],
+                std=config['mean']
+            ),
+            batch_size=data_config['batch_size'],
+            shuffle=True,
+            num_workers=int(data_config['workers'])
+        )
     val_data_loader = torch.utils.data.DataLoader(
-        dataset=AbstractDataset(val_files, config, mode='val'),
-        batch_size=config["dataset"]["train"]['batch_size'],
-        shuffle=False,
-        num_workers=int(config["dataset"]["train"]['workers'])
-    ) if len(val_files) > 0 else None
+            dataset=TrainDataset(
+                val_files,
+                resolution=config['resolution'],
+                balance=data_config['balance'],
+                sample_per_class=int(data_config['sample_per_class']*data_config['split']['val']//data_config["split"]['train']),
+                augment_config=config['data_aug'] if config['use_data_augmentation'] else None,
+                mean=config['mean'],
+                std=config['mean']
+            ),
+            batch_size=data_config['batch_size'],
+            shuffle=False,
+            num_workers=int(data_config['workers'])
+        )
     test_data_loader = torch.utils.data.DataLoader(
-        dataset=AbstractDataset(test_files, config, mode='test'),
-        batch_size=config["dataset"]["train"]['batch_size'],
+        dataset=TestDataset(
+            test_files,
+            resolution=config['resolution'],
+            balance=data_config['balance'],
+            augment_config=None,
+            mean=config['mean'],
+            std=config['mean']
+        ),
+        batch_size=data_config['batch_size'],
         shuffle=False,
-        num_workers=int(config["dataset"]["train"]['workers'])
+        num_workers=int(data_config['workers'])
     ) if len(test_files) > 0 else None
     return train_data_loader, val_data_loader, test_data_loader
 
 
 def prepare_test_data(config, logger):
+    data_config = config["dataset"]["test"]
     test_files = load_test(config, logger)
-    train_data_loader = torch.utils.data.DataLoader(
-        dataset=AbstractDataset(test_files, config, mode='test'),
-        batch_size=config["dataset"]["test"]['batch_size'],
+
+    logger.info(f"{'Preparing Data Loader':=^50}")
+    logger.info(f"Test: {get_length(test_files, 'real')} real, {get_length(test_files, 'fake')} fake.")
+    test_data_loader = torch.utils.data.DataLoader(
+        dataset=TestDataset(
+            test_files,
+            resolution=config['resolution'],
+            balance=data_config['balance'],
+            augment_config=None,
+            mean=config['mean'],
+            std=config['mean']
+        ),
+        batch_size=data_config['batch_size'],
         shuffle=True,
-        num_workers=int(config["dataset"]["test"]['workers'])
+        num_workers=int(data_config['workers'])
     )
-    return train_data_loader
+    return test_data_loader
 
 
 def choose_optimizer(model, config):
@@ -252,14 +295,15 @@ def run(config_path):
 
 
 RUNS = [
-    "config/run_coatnet.yaml",
-    "config/run_coatnet_sam.yaml",
-    "config/run_coatnet_is_sam.yaml",
-    "config/run_coatnet_sam_is_sam.yaml",
-    # "config/run_resnet50.yaml",
+    # "config/run_coatnet.yaml",
+    # "config/run_coatnet_sam.yaml",
+    # "config/run_coatnet_is_sam.yaml",
+    # "config/run_coatnet_sam_is_sam.yaml",
+    "config/run_resnet50.yaml",
     # "config/run_resnet50_sam.yaml",
     # "config/run_resnet50_is_sam.yaml",
     # "config/run_resnet50_sam_is_sam.yaml"
+    # "config/run_dino.yaml",
 ]
 
 if __name__ == '__main__':

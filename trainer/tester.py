@@ -111,10 +111,10 @@ class Tester(object):
             train_pbar = tqdm(enumerate(test_data_loader), desc=f"Testing",
                               leave=False, total=len(test_data_loader))
             for iteration, data in train_pbar:
-                paths, x, label = data
+                x, label, clazz, paths = data
                 label = label.to(device)
 
-                logits = self.inference((x, label))
+                logits = self.inference(data)
                 probs = torch.softmax(logits, dim=1)
                 preds = torch.argmax(logits, dim=1)
 
@@ -239,7 +239,7 @@ class Tester(object):
 
     @torch.no_grad()
     def inference(self, data):
-        x, label = data
+        x, label, clazz, path = data
         predictions = self.model(x.to(device), inference=True)
         return predictions
 

@@ -45,24 +45,43 @@ def _split_strict(hierarchical_data: Dict, ratio: Tuple[float, ...]) -> List[Lis
 
     extract_video_folders(hierarchical_data)
 
-    random.shuffle(video_folders)
-    total_videos = len(video_folders)
-    cumulative_ratios = np.cumsum(ratio[:-1])
-    split_indices = [int(r * total_videos) for r in cumulative_ratios]
+    if len(video_folders) > 10:
+        random.shuffle(video_folders)
+        total_videos = len(video_folders)
+        cumulative_ratios = np.cumsum(ratio[:-1])
+        split_indices = [int(r * total_videos) for r in cumulative_ratios]
 
-    video_parts = []
-    start_idx = 0
-    for end_idx in split_indices:
-        video_parts.append(video_folders[start_idx:end_idx])
-        start_idx = end_idx
-    video_parts.append(video_folders[start_idx:])
+        video_parts = []
+        start_idx = 0
+        for end_idx in split_indices:
+            video_parts.append(video_folders[start_idx:end_idx])
+            start_idx = end_idx
+        video_parts.append(video_folders[start_idx:])
 
-    result = []
-    for part in video_parts:
-        file_list = []
-        for video in part:
-            file_list.extend(video['files'])
-        result.append(sorted(file_list))
+        result = []
+        for part in video_parts:
+            file_list = []
+            for video in part:
+                file_list.extend(video['files'])
+            result.append(sorted(file_list))
+    else:
+        all_file = []
+        for folder in video_folders:
+            all_file.extend(folder['files'])
+
+        total = len(all_file)
+        cumulative_ratios = np.cumsum(ratio[:-1])
+        split_indices = [int(r * total) for r in cumulative_ratios]
+        parts = []
+        start_idx = 0
+        for end_idx in split_indices:
+            parts.append(all_file[start_idx:end_idx])
+            start_idx = end_idx
+        parts.append(all_file[start_idx:])
+
+        result = []
+        for part in parts:
+            result.append(sorted(part))
     return result
 
 
@@ -117,49 +136,60 @@ def get_folder(root, dataset_name, data_domain):
 
 
 def load_train(config, logger):
-    train_images = {"fake": [], "real": []}
-    val_images = {"fake": [], "real": []}
-    test_images = {"fake": [], "real": []}
+    logger.info(f"{'Collecting Data':=^50}")
+    train_images = {}
+    val_images = {}
+    test_images = {}
+
+    data_config = config["dataset"]["train"]
 
     for label in ["real", "fake"]:
-        for dataset_name in config["dataset"]["train"][f"{label}_dataset_names"]:
-            collect(os.path.join(config["dataset"]["train"]["root"], dataset_name))
-            folder_dict = get_folder(config["dataset"]["train"]["root"],
+        for dataset_name in data_config[f"{label}_dataset_names"]:
+            if dataset_name not in train_images:
+                train_images[dataset_name] = {"real":[], "fake": []}
+            if dataset_name not in val_images:
+                val_images[dataset_name] = {"real":[], "fake": []}
+            if dataset_name not in test_images:
+                test_images[dataset_name] = {"real":[], "fake": []}
+            collect(os.path.join(data_config["root"], dataset_name))
+            folder_dict = get_folder(data_config["root"],
                                      dataset_name,
-                                     config["dataset"]["train"]["domain"])[0 if label == "real" else 1]
-            if config["dataset"]["train"]["type"] == "in-domain":
+                                     data_config["domain"])[0 if label == "real" else 1]
+            if data_config["type"] == "in-domain":
                 sub_train, sub_val, sub_test = split_parts(folder_dict, (
-                    config["dataset"]["train"]["split"]["train"],
-                    config["dataset"]["train"]["split"]["val"],
-                    config["dataset"]["train"]["split"]["test"]
+                    data_config["split"]["train"],
+                    data_config["split"]["val"],
+                    data_config["split"]["test"]
                 ), strict=True)
-                train_images[label].extend(sub_train)
-                val_images[label].extend(sub_val)
-                test_images[label].extend(sub_test)
+                train_images[dataset_name][label] = sub_train
+                val_images[dataset_name][label] = sub_val
+                test_images[dataset_name][label] = sub_test
                 logger.info(f"{dataset_name} {label} images: {len(sub_train)}/{len(sub_val)}/{len(sub_test)}")
             else:
                 sub_train, sub_val = split_parts(folder_dict, (
-                    config["dataset"]["train"]["split"]["train"],
-                    config["dataset"]["train"]["split"]["val"]
-                ), strict=True)
-                train_images[label].extend(sub_train)
-                val_images[label].extend(sub_val)
+                    data_config["split"]["train"],
+                    data_config["split"]["val"]
+                ), strict=False)
+                train_images[dataset_name][label] = sub_train
+                val_images[dataset_name][label] = sub_val
                 logger.info(f"{dataset_name} {label} images: {len(sub_train)}/{len(sub_val)}")
     return train_images, val_images, test_images
 
 
 def load_test(config, logger):
-    test_images = {"fake": [], "real": []}
+    logger.info(f"{'Collecting Data':=^50}")
+    test_images = {}
+    data_config = config["dataset"]["test"]
     for label in ["real", "fake"]:
-        for dataset_name in config["dataset"]["test"][f"{label}_dataset_names"]:
-            collect(os.path.join(config["dataset"]["test"]["root"], dataset_name))
-            folder_dict = get_folder(config["dataset"]["test"]["root"],
+        for dataset_name in data_config[f"{label}_dataset_names"]:
+            collect(os.path.join(data_config["root"], dataset_name))
+            folder_dict = get_folder(data_config["root"],
                                      dataset_name,
-                                     config["dataset"]["test"]["domain"])[0 if label == "real" else 1]
+                                     data_config["domain"])[0 if label == "real" else 1]
             sub_test, = split_parts(folder_dict, (
-                config["dataset"]["test"]["split"]["test"],
+                data_config["split"]["test"],
             ), strict=True)
-            test_images[label].extend(sub_test)
+            test_images[dataset_name] = sub_test
             logger.info(f"{dataset_name} {label} images: {len(sub_test)}")
     return test_images
 
@@ -181,7 +211,7 @@ def show_samples(dataset, n=5):
         mean = torch.tensor(dataset.config['mean']).view(3, 1, 1)
         std = torch.tensor(dataset.config['std']).view(3, 1, 1)
 
-    for ax, (image_tensor, label) in zip(axes, samples):
+    for ax, (image_tensor, label, clazz) in zip(axes, samples):
         if 'mean' in locals() and 'std' in locals():
             image_tensor = image_tensor * std + mean
 
@@ -194,4 +224,4 @@ def show_samples(dataset, n=5):
         ax.set_title(f"Label: {'Fake' if label == 1 else 'Real'}")
         ax.axis('off')
     plt.tight_layout()
-    plt.show()
+    plt.savefig("./figure.png")

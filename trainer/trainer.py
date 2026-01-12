@@ -63,7 +63,7 @@ class Trainer(object):
         self.training = False
 
     def train_step(self, data, epoch):
-        x, label = data
+        x, label, clazz = data
         x = x.to(device)
         label = label.to(device)
 
@@ -135,7 +135,7 @@ class Trainer(object):
                 p.requires_grad = True
 
         for iteration, data in train_pbar:
-            x, label = data
+            x, label, clazz = data
 
             loss, pred = self.train_step(data, epoch)
 
@@ -170,7 +170,7 @@ class Trainer(object):
         label_lists = []
         self.set_eval()
         for i, data in tqdm(enumerate(data_loader),total=len(data_loader)):
-            x, label = data
+            x, label, clazz = data
             predictions = self.inference(data)
             loss = self.model.get_losses(label.to(device), predictions.to(device))
             label_lists.append(label.detach().cpu().numpy())
@@ -198,6 +198,6 @@ class Trainer(object):
 
     @torch.no_grad()
     def inference(self, data):
-        x, label = data
+        x, label, clazz = data
         predictions = self.model(x.to(device), inference=True)
         return predictions

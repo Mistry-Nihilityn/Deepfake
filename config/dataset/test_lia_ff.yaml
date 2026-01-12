@@ -1,8 +1,8 @@
 name: lia
 
 root: ../dataset
-domain: [ff]
-real_dataset_names: [ FaceForensics++ ]
+domain: [ff, cdf]
+real_dataset_names: [ FaceForensics++, Celeb-DF-v2]
 fake_dataset_names: [ lia ]
 batch_size: 128
 workers: 8
