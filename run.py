@@ -300,13 +300,14 @@ def run(config_path):
 
 
 RUNS = [
-    # "config/run_coatnet.yaml",
-    # "config/run_coatnet_sam.yaml",
+    "config/run_coatnet.yaml",
+    "config/run_coatnet_sam.yaml",
+    "config/run_coatnet_sam_all.yaml",
     # "config/run_coatnet_is_sam.yaml",
     # "config/run_coatnet_sam_is_sam.yaml",
-    "config/run_resnet50.yaml",
-    "config/run_resnet50_sam.yaml",
-    "config/run_resnet50_sam_all.yaml",
+    # "config/run_resnet50.yaml",
+    # "config/run_resnet50_sam.yaml",
+    # "config/run_resnet50_sam_all.yaml",
     # "config/run_resnet50_is_sam.yaml",
     # "config/run_resnet50_sam_is_sam.yaml"
     # "config/run_dino.yaml",

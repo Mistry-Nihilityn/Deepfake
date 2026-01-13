@@ -4,10 +4,10 @@ type: cross-domain
 domain: [ff, cdf]
 real_dataset_names: [FaceForensics++, Celeb-DF-v2, deepfacelab, stargan, styleclip, heygen_new]
 fake_dataset_names: [deepfacelab, StyleGAN2, fsgan, faceswap, stargan, styleclip, heygen, heygen_new]
-batch_size: 128
+batch_size: 32
 workers: 8
 balance: true
-sample_per_class: 32
+sample_per_class: 4000
 split:
   train: 0.7
   val: 0.1

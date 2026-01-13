@@ -30,7 +30,7 @@ std: [0.229, 0.224, 0.225]
 optimizer:
   # choose between 'adam' and 'sgd'
   base: adam
-  additional: null
+  additional: sam
   adam:
     lr: 0.0001  # learning rate
     betas: [0.9, 0.999]  # betas for Adam optimizer
@@ -39,7 +39,7 @@ optimizer:
     amsgrad: false
   sam:
     rho: 0.05
-    affect_classifier: false
+    affect_classifier: true
     start_epoch: 2
   is-sam:
     rho: 0.05

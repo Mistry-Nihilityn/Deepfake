@@ -154,29 +154,35 @@ class TrainDataset(AbstractDataset):
             img = None
             label = 0
             clazz = -1
+            path = "Unkown"
             for name, sub in self.real_imgs.items():
                 if index < len(sub):
-                    img = self.load_rgb(sub[index])
+                    path = sub[index]
+                    img = self.load_rgb(path)
                     break
                 else:
                     index -= len(sub)
 
             if img is None:
-                img = self.load_rgb(random.choice(random.choice([sub for sub in self.real_imgs.values() if len(sub) > 0])))
+                path = random.choice(random.choice([sub for sub in self.real_imgs.values() if len(sub) > 0]))
+                img = self.load_rgb(path)
         else:
             index -= self.real_cnt
             img = None
             label = 1
             clazz = None
+            path = "Unkown"
             for cls_idx, sub in enumerate(self.fake_imgs.values()):
                 clazz = cls_idx
                 if index < len(sub):
-                    img = self.load_rgb(sub[index])
+                    path = sub[index]
+                    img = self.load_rgb(path)
                     break
                 else:
                     if self.balance:
                         if index < self.sample_per_class:
                             path1, path2 = random.sample(sub, 2)
+                            path = f"{path1} | {path2}"
                             ratio = random.random()
                             img = self.load_rgb(path1) * ratio + self.load_rgb(path2) * (1 - ratio)
                             break
@@ -188,7 +194,7 @@ class TrainDataset(AbstractDataset):
         if img is None or label is None or clazz is None:
             print(index)
             raise Exception
-        return img, label, clazz
+        return img, label, clazz, path
 
 
 class TestDataset(AbstractDataset):

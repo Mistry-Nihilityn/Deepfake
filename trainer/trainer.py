@@ -2,6 +2,8 @@ import copy
 import os
 import sys
 
+import pandas as pd
+
 from detectors.base_detector import AbstractDetector
 
 current_file_path = os.path.abspath(__file__)
@@ -63,7 +65,7 @@ class Trainer(object):
         self.training = False
 
     def train_step(self, data, epoch):
-        x, label, clazz = data
+        x, label, clazz, path = data
         x = x.to(device)
         label = label.to(device)
 
@@ -110,6 +112,29 @@ class Trainer(object):
 
         return loss, predictions
 
+    def save_results(self, folder_name, preds, labels, probs, paths, epoch):
+        all_preds = np.array(preds)
+        all_labels = np.array(labels)
+        all_probs = np.array(probs)
+
+        results_df = pd.DataFrame({
+            'path': paths,
+            'true_label': all_labels,
+            'pred_label': all_preds,
+            'pred_prob_0': 1 - all_probs,
+            'pred_prob_1': all_probs,
+            'correct': (all_preds == all_labels).astype(int)
+        })
+
+        results_df['true_label_name'] = results_df['true_label'].apply(lambda x: 'real' if x == 0 else 'fake')
+        results_df['pred_label_name'] = results_df['pred_label'].apply(lambda x: 'real' if x == 0 else 'fake')
+
+        if not os.path.exists(os.path.join(self.log_dir, folder_name)):
+            os.makedirs(os.path.join(self.log_dir, folder_name), exist_ok=True)
+        results_csv_path = os.path.join(self.log_dir, folder_name, f"epoch_{epoch}.csv")
+        results_df.to_csv(results_csv_path, index=False, encoding='utf-8')
+        self.logger.info(f"所有结果已保存到: {results_csv_path}")
+
     def train_epoch(
             self,
             epoch,
@@ -134,13 +159,20 @@ class Trainer(object):
             for p in self.model.feature_params():
                 p.requires_grad = True
 
+        all_preds = []
+        all_labels = []
+        all_probs = []
+        all_paths = []
+
         for iteration, data in train_pbar:
-            x, label, clazz = data
+            x, label, clazz, path = data
 
-            loss, pred = self.train_step(data, epoch)
+            loss, logits = self.train_step(data, epoch)
 
-            _, predicted = torch.max(pred, 1)
+            _, predicted = torch.max(logits, 1)
             correct = (predicted.to(device) == label.to(device)).sum().item()
+            prob = torch.softmax(logits, dim=1)
+            pred = torch.argmax(logits, dim=1)
 
             total_correct += correct
             total_samples += label.size(0)
@@ -152,12 +184,20 @@ class Trainer(object):
                 'acc': f'{batch_acc:.4f}'
             })
 
+            all_preds.extend(pred.cpu().numpy())
+            all_labels.extend(label.cpu().numpy())
+            all_probs.extend(prob.detach()[:, 1].cpu().numpy())
+            all_paths.extend(path)
+
             step_cnt += 1
 
         avg_loss = total_loss / len(train_data_loader)
         avg_acc = total_correct / total_samples
 
         self.logger.info(f"===> Epoch[{epoch}] Train - Loss: {avg_loss:.4f}, Acc: {avg_acc:.4f}")
+
+        self.save_results("train_output", all_preds, all_labels, all_probs, all_paths, epoch)
+
         self.logger.info("===> Test start!")
 
         metric = self.val_epoch(epoch, val_data_loaders)
@@ -165,26 +205,34 @@ class Trainer(object):
         return metric
 
     def val_epoch(self, epoch, data_loader):
-        loss_list = []
-        prediction_lists = []
-        label_lists = []
         self.set_eval()
+
+        all_preds = []
+        all_labels = []
+        all_probs = []
+        all_paths = []
+        loss_list = []
+
         for i, data in tqdm(enumerate(data_loader),total=len(data_loader)):
-            x, label, clazz = data
-            predictions = self.inference(data)
-            loss = self.model.get_losses(label.to(device), predictions.to(device))
-            label_lists.append(label.detach().cpu().numpy())
-            prediction_lists.append(predictions.detach().cpu().numpy())
+            x, label, clazz, path = data
+            logits = self.inference(data)
+            loss = self.model.get_losses(label.to(device), logits.to(device))
+
+            prob = torch.softmax(logits, dim=1)
+            pred = torch.argmax(logits, dim=1)
             loss_list.append(loss.detach().cpu().numpy())
 
-        predictions = np.concatenate(prediction_lists, axis=0)
-        labels = np.concatenate(label_lists, axis=0)
-        pred_classes = np.argmax(predictions, axis=1)
+            all_preds.extend(pred.cpu().numpy())
+            all_labels.extend(label.cpu().numpy())
+            all_probs.extend(prob[:, 1].detach().cpu().numpy())
+            all_paths.extend(path)
+
+        self.save_results("val_output", all_preds, all_labels, all_probs, all_paths, epoch)
 
         metric = {
             "epoch": epoch,
             "avg_loss": np.mean(loss_list),
-            "acc": np.mean(pred_classes == labels),
+            "acc": np.mean(np.array(all_preds) == np.array(all_labels)),
             "params": copy.deepcopy(self.model.state_dict())
         }
         self.save_best(metric)
@@ -198,6 +246,6 @@ class Trainer(object):
 
     @torch.no_grad()
     def inference(self, data):
-        x, label, clazz = data
+        x, label, clazz, path = data
         predictions = self.model(x.to(device), inference=True)
         return predictions
