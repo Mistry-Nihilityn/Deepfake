@@ -315,7 +315,7 @@ if __name__ == '__main__':
             except Exception as e:
                 print("Error!")
                 traceback.print_tb(e.__traceback__, file=f)
-                # raise e
+                raise e
         f.write("Finished!")
         print("Finished!")
-    os.system("/usr/bin/shutdown")
+    # os.system("/usr/bin/shutdown")

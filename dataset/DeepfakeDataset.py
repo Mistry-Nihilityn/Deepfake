@@ -24,8 +24,8 @@ class AbstractDataset(data.Dataset, metaclass=ABCMeta):
         self.mean = mean
         self.std = std
 
-        self.real_imgs = {name: images[name]["real"] for name in images.keys()}
-        self.fake_imgs = {name: images[name]["fake"] for name in images.keys()}
+        self.real_imgs = {name: images[name]["real"] for name in images.keys() if len(images[name]["real"])}
+        self.fake_imgs = {name: images[name]["fake"] for name in images.keys() if len(images[name]["fake"])}
         self.real_cnt = self.fake_cnt = None
         self.transform = self.init_data_aug_method()
 
@@ -164,23 +164,26 @@ class TrainDataset(AbstractDataset):
             if img is None:
                 img = self.load_rgb(random.choice(random.choice([sub for sub in self.real_imgs.values() if len(sub) > 0])))
         else:
+            index -= self.real_cnt
             img = None
             label = 1
             clazz = None
-            for cls_idx, sub in enumerate(self.fake_imgs.items()):
+            for cls_idx, sub in enumerate(self.fake_imgs.values()):
                 if index < len(sub):
                     clazz = cls_idx
                     img = self.load_rgb(sub[index])
                 else:
-                    index -= len(sub)
-
-            if img is None:
-                fake_clazz = [i for i, key in enumerate(self.fake_imgs) if len(self.fake_imgs[key])]
-                idx = random.randint(0, len(fake_clazz)-1)
-                clazz = fake_clazz[idx]
-                path1, path2 = random.sample(list(self.fake_imgs.values())[clazz], 2)
-                ratio = random.random()
-                img = self.load_rgb(path1)*ratio + self.load_rgb(path2) * (1-ratio)
+                    if self.balance:
+                        if index < self.sample_per_class:
+                            path1, path2 = random.sample(sub, 2)
+                            ratio = random.random()
+                            img = self.load_rgb(path1) * ratio + self.load_rgb(path2) * (1 - ratio)
+                        else:
+                            index -= self.sample_per_class
+                    else:
+                        index -= len(sub)
+        if img is None:
+            print(index)
         img = self.data_aug(img)
         if img is None or label is None:
             print(index)

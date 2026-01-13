@@ -182,6 +182,8 @@ def load_test(config, logger):
     data_config = config["dataset"]["test"]
     for label in ["real", "fake"]:
         for dataset_name in data_config[f"{label}_dataset_names"]:
+            if dataset_name not in test_images:
+                test_images[dataset_name] = {"real": [], "fake": []}
             collect(os.path.join(data_config["root"], dataset_name))
             folder_dict = get_folder(data_config["root"],
                                      dataset_name,
@@ -189,7 +191,7 @@ def load_test(config, logger):
             sub_test, = split_parts(folder_dict, (
                 data_config["split"]["test"],
             ), strict=True)
-            test_images[dataset_name] = sub_test
+            test_images[dataset_name][label] = sub_test
             logger.info(f"{dataset_name} {label} images: {len(sub_test)}")
     return test_images
 
