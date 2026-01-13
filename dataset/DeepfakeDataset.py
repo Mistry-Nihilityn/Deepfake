@@ -169,8 +169,8 @@ class TrainDataset(AbstractDataset):
             label = 1
             clazz = None
             for cls_idx, sub in enumerate(self.fake_imgs.values()):
+                clazz = cls_idx
                 if index < len(sub):
-                    clazz = cls_idx
                     img = self.load_rgb(sub[index])
                     break
                 else:
@@ -184,10 +184,8 @@ class TrainDataset(AbstractDataset):
                             index -= self.sample_per_class
                     else:
                         index -= len(sub)
-        if img is None:
-            print(index)
         img = self.data_aug(img)
-        if img is None or label is None:
+        if img is None or label is None or clazz is None:
             print(index)
             raise Exception
         return img, label, clazz
