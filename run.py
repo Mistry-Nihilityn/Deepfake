@@ -55,7 +55,7 @@ def prepare_train_data(config, logger):
                 sample_per_class=data_config['sample_per_class'],
                 augment_config=config['data_aug'] if config['use_data_augmentation'] else None,
                 mean=config['mean'],
-                std=config['mean']
+                std=config['std']
             ),
             batch_size=data_config['batch_size'],
             shuffle=True,
@@ -69,7 +69,7 @@ def prepare_train_data(config, logger):
                 sample_per_class=int(data_config['sample_per_class']*data_config['split']['val']//data_config["split"]['train']),
                 augment_config=config['data_aug'] if config['use_data_augmentation'] else None,
                 mean=config['mean'],
-                std=config['mean']
+                std=config['std']
             ),
             batch_size=data_config['batch_size'],
             shuffle=False,
@@ -80,9 +80,11 @@ def prepare_train_data(config, logger):
             test_files,
             resolution=config['resolution'],
             balance=data_config['balance'],
+            sample_per_class=int(
+                data_config['sample_per_class'] * data_config['split']['test'] // data_config["split"]['train']),
             augment_config=None,
             mean=config['mean'],
-            std=config['mean']
+            std=config['std']
         ),
         batch_size=data_config['batch_size'],
         shuffle=False,
@@ -104,7 +106,7 @@ def prepare_test_data(config, logger):
             balance=data_config['balance'],
             augment_config=None,
             mean=config['mean'],
-            std=config['mean']
+            std=config['std']
         ),
         batch_size=data_config['batch_size'],
         shuffle=True,
@@ -194,10 +196,15 @@ def train(config):
     logger.info(f"  - fake: {train_data_loader.dataset.fake_cnt:,}")
     logger.info(f"  - real: {train_data_loader.dataset.real_cnt:,}")
     logger.info(f"  - total: {train_data_loader.dataset.fake_cnt + train_data_loader.dataset.real_cnt:,}")
-    logger.info(f"\nValidation set:")
+    logger.info(f"Validation set:")
     logger.info(f"  - fake: {val_data_loader.dataset.fake_cnt:,}")
     logger.info(f"  - real: {val_data_loader.dataset.real_cnt:,}")
     logger.info(f"  - total: {val_data_loader.dataset.fake_cnt + val_data_loader.dataset.real_cnt:,}")
+    if test_data_loader:
+        logger.info(f"Test set:")
+        logger.info(f"  - fake: {test_data_loader.dataset.fake_cnt:,}")
+        logger.info(f"  - real: {test_data_loader.dataset.real_cnt:,}")
+        logger.info(f"  - total: {test_data_loader.dataset.fake_cnt + test_data_loader.dataset.real_cnt:,}")
 
     config["dataset"]["weight"] = get_weight(train_data_loader)
     logger.info(f"Weight: {config['dataset']['weight']}")
