@@ -11,12 +11,12 @@ train_dataset_configs: [
 ]
 
 test_dataset_configs: [
-  config/dataset/test_DiT_ff.yaml,
+  config/dataset/test_DiT.yaml,
   config/dataset/test_heygen_ff.yaml,
   config/dataset/test_heygen_new.yaml,
-  config/dataset/test_lia_ff.yaml,
+  config/dataset/test_lia.yaml,
   config/dataset/test_SageMaker.yaml,
-  config/dataset/test_simswap_ff.yaml,
+  config/dataset/test_simswap.yaml,
   config/dataset/test_stargan.yaml,
   config/dataset/test_starganv2.yaml,
   config/dataset/test_styleclip.yaml,

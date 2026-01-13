@@ -11,12 +11,12 @@ train_dataset_configs: [
 ]
 
 test_dataset_configs: [
-  config/dataset/test_DiT_ff.yaml,
+  config/dataset/test_DiT.yaml,
 #  config/dataset/test_heygen_ff.yaml,
 #  config/dataset/test_heygen_new.yaml,
-  config/dataset/test_lia_ff.yaml,
+  config/dataset/test_lia.yaml,
   config/dataset/test_SageMaker.yaml,
-  config/dataset/test_simswap_ff.yaml,
+  config/dataset/test_simswap.yaml,
 #  config/dataset/test_stargan.yaml,
   config/dataset/test_starganv2.yaml,
 #  config/dataset/test_styleclip.yaml,
@@ -41,13 +41,16 @@ optimizer:
     rho: 0.05
     affect_classifier: false
     start_epoch: 2
+  is-sam:
+    rho: 0.05
+    start_epoch: 2
 
 # training config
 resolution: 224   # resolution of output image to network
 lr_scheduler: step   # learning rate scheduler
 lr_step: 4
 lr_gamma: 0.1
-n_epochs: 1   # number of epochs to train for
+n_epochs: 5   # number of epochs to train for
 start_epoch: 0   # manual epoch number
 
 # loss function

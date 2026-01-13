@@ -80,8 +80,8 @@ def prepare_train_data(config, logger):
             test_files,
             resolution=config['resolution'],
             balance=data_config['balance'],
-            sample_per_class=int(
-                data_config['sample_per_class'] * data_config['split']['test'] // data_config["split"]['train']),
+            # sample_per_class=int(
+            #     data_config['sample_per_class'] * data_config['split']['test'] // data_config["split"]['train']),
             augment_config=None,
             mean=config['mean'],
             std=config['std']
@@ -235,8 +235,6 @@ def train(config):
     loss = metric["avg_loss"]
     acc = metric["acc"]
     logger.info(f"Stop Training on best Testing metric epoch:{epoch}, acc:{acc}, loss:{loss}")
-    close_logger(logger)
-
     if config["dataset"]["train"]["type"] == "in-domain":
         logger.info("--------------- In-domain Test Configuration ---------------")
         logger.info(f"Test set:")
@@ -307,7 +305,8 @@ RUNS = [
     # "config/run_coatnet_is_sam.yaml",
     # "config/run_coatnet_sam_is_sam.yaml",
     "config/run_resnet50.yaml",
-    # "config/run_resnet50_sam.yaml",
+    "config/run_resnet50_sam.yaml",
+    "config/run_resnet50_sam_all.yaml",
     # "config/run_resnet50_is_sam.yaml",
     # "config/run_resnet50_sam_is_sam.yaml"
     # "config/run_dino.yaml",
