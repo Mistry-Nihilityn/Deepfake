@@ -43,8 +43,8 @@ class ResNetDetector(AbstractDetector):
     def classifier(self, features: torch.Tensor) -> torch.Tensor:
         return self.backbone.classifier(features)
 
-    def get_losses(self, label: torch.Tensor, pred: torch.Tensor) -> torch.Tensor:
-        return self.loss_func(pred, label)
+    def get_losses(self, label: torch.Tensor, pred: torch.Tensor, reduction="mean") -> torch.Tensor:
+        return self.loss_func(pred, label, reduction)
 
     def get_train_metrics(self, data: list, pred: torch.Tensor) -> dict:
         x, label = data

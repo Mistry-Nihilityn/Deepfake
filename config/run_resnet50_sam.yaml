@@ -6,21 +6,18 @@ seed: 42
 pretrained: true
 backbone_freeze_epoch: 1
 train_dataset_configs: [
-  config/dataset/in-train-batch128.yaml,
+#  config/dataset/in-train-batch128.yaml,
   config/dataset/cross-train-batch128.yaml,
 ]
 
+val_dataset_configs: null
+
 test_dataset_configs: [
-  config/dataset/test_DiT.yaml,
-#  config/dataset/test_heygen_ff.yaml,
-#  config/dataset/test_heygen_new.yaml,
-  config/dataset/test_lia.yaml,
   config/dataset/test_SageMaker.yaml,
-  config/dataset/test_simswap.yaml,
-#  config/dataset/test_stargan.yaml,
-  config/dataset/test_starganv2.yaml,
-#  config/dataset/test_styleclip.yaml,
+  config/dataset/test_DiT.yaml,
 ]
+
+test_after_every_epoch: true
 
 # mean and std for normalization
 mean: [0.485, 0.456, 0.406]
@@ -39,7 +36,9 @@ optimizer:
     amsgrad: false
   sam:
     rho: 0.05
+    warm_up: 1
     affect_classifier: false
+    affect_fake_only: true
     start_epoch: 2
   is-sam:
     rho: 0.05
@@ -48,9 +47,9 @@ optimizer:
 # training config
 resolution: 224   # resolution of output image to network
 lr_scheduler: step   # learning rate scheduler
-lr_step: 4
+lr_step: 5
 lr_gamma: 0.1
-n_epochs: 5   # number of epochs to train for
+n_epochs: 10   # number of epochs to train for
 start_epoch: 0   # manual epoch number
 
 # loss function

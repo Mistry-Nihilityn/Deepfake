@@ -60,7 +60,7 @@ class AbstractDetector(nn.Module, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_losses(self, data_dict: dict, pred_dict: dict) -> dict:
+    def get_losses(self, data_dict: dict, pred_dict: dict, reduction="mean") -> dict:
         """
         Returns the losses for the model.
         """

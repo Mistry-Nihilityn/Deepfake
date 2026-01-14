@@ -7,7 +7,7 @@ fake_dataset_names: [deepfacelab, StyleGAN2, fsgan, faceswap, stargan, styleclip
 batch_size: 128
 workers: 8
 balance: true
-sample_per_class: 4000
+sample_per_class: 40
 split:
   train: 0.7
   val: 0.1

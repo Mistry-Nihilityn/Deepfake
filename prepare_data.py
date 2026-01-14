@@ -122,10 +122,12 @@ def get_folder(root, dataset_name, data_domain):
     elif dataset_name == "Celeb-DF-v2":
         real = {k:images.get(k, {}) for k in ["Celeb-real", "YouTube-real"]}
         fake = {k:images.get(k, {}) for k in ["Celeb-synthesis"]}
-    elif dataset_name in ["deepfacelab", "heygen_new", "stargan", "starganv2", "styleclip", "SageMaker"]:
+    elif dataset_name in ["deepfacelab", "heygen_new", "stargan", "starganv2", "styleclip", "SageMaker", "CollabDiff","MidJourney"]:
         real = {k:images.get(k, {}) for k in ["real"]}
         fake = {k:images.get(k, {}) for k in ["fake"]}
-    elif dataset_name in ["DiT", "fsgan", "lia", "StyleGAN2", "faceswap", "heygen", "simswap"]:
+    elif dataset_name in ["DiT", "fsgan", "lia", "StyleGAN2", "faceswap", "heygen", "simswap", "blendface",
+                          "danet", "ddim", "e4s", "facedancer", "fomm", "hyperreenact", "inswap", "mcnet", "mobileswap",
+                          "MRAA", "one_shot_free", "pirender", "RDDM", "simswap", "SiT"]:
         real = {}
         fake = {k:images.get(k, {}) for k in data_domain}
     else:
@@ -142,37 +144,63 @@ def load_train(config, logger):
     test_images = {}
 
     data_config = config["dataset"]["train"]
+    val_config = config["dataset"]["val"]
 
-    for label in ["real", "fake"]:
-        for dataset_name in data_config[f"{label}_dataset_names"]:
-            if dataset_name not in train_images:
-                train_images[dataset_name] = {"real":[], "fake": []}
-            if dataset_name not in val_images:
-                val_images[dataset_name] = {"real":[], "fake": []}
-            if dataset_name not in test_images:
-                test_images[dataset_name] = {"real":[], "fake": []}
-            collect(os.path.join(data_config["root"], dataset_name))
-            folder_dict = get_folder(data_config["root"],
-                                     dataset_name,
-                                     data_config["domain"])[0 if label == "real" else 1]
-            if data_config["type"] == "in-domain":
-                sub_train, sub_val, sub_test = split_parts(folder_dict, (
-                    data_config["split"]["train"],
-                    data_config["split"]["val"],
-                    data_config["split"]["test"]
-                ), strict=True)
+    if val_config: # Independent val set
+        for label in ["real", "fake"]:
+            for dataset_name in data_config[f"{label}_dataset_names"]:
+                if dataset_name not in train_images:
+                    train_images[dataset_name] = {"real":[], "fake": []}
+                collect(os.path.join(data_config["root"], dataset_name))
+                folder_dict = get_folder(data_config["root"],
+                                         dataset_name,
+                                         data_config["domain"])[0 if label == "real" else 1]
+                sub_train, = split_parts(folder_dict, (1, ), strict=False)
                 train_images[dataset_name][label] = sub_train
+                logger.info(f"{dataset_name} {label} images: {len(sub_train)}")
+
+            for dataset_name in val_config[f"{label}_dataset_names"]:
+                if dataset_name not in val_images:
+                    val_images[dataset_name] = {"real":[], "fake": []}
+                collect(os.path.join(val_config["root"], dataset_name))
+                folder_dict = get_folder(val_config["root"],
+                                         dataset_name,
+                                         val_config["domain"])[0 if label == "real" else 1]
+                sub_val, = split_parts(folder_dict, (1, ), strict=False)
                 val_images[dataset_name][label] = sub_val
-                test_images[dataset_name][label] = sub_test
-                logger.info(f"{dataset_name} {label} images: {len(sub_train)}/{len(sub_val)}/{len(sub_test)}")
-            else:
-                sub_train, sub_val = split_parts(folder_dict, (
-                    data_config["split"]["train"],
-                    data_config["split"]["val"]
-                ), strict=False)
-                train_images[dataset_name][label] = sub_train
-                val_images[dataset_name][label] = sub_val
-                logger.info(f"{dataset_name} {label} images: {len(sub_train)}/{len(sub_val)}")
+                logger.info(f"{dataset_name} {label} images: {len(sub_val)}")
+
+    else: # Sample val dataset from train
+        for label in ["real", "fake"]:
+            for dataset_name in data_config[f"{label}_dataset_names"]:
+                if dataset_name not in train_images:
+                    train_images[dataset_name] = {"real":[], "fake": []}
+                if dataset_name not in val_images:
+                    val_images[dataset_name] = {"real":[], "fake": []}
+                if dataset_name not in test_images:
+                    test_images[dataset_name] = {"real":[], "fake": []}
+                collect(os.path.join(data_config["root"], dataset_name))
+                folder_dict = get_folder(data_config["root"],
+                                         dataset_name,
+                                         data_config["domain"])[0 if label == "real" else 1]
+                if data_config["type"] == "in-domain":
+                    sub_train, sub_val, sub_test = split_parts(folder_dict, (
+                        data_config["split"]["train"],
+                        data_config["split"]["val"],
+                        data_config["split"]["test"]
+                    ), strict=True)
+                    train_images[dataset_name][label] = sub_train
+                    val_images[dataset_name][label] = sub_val
+                    test_images[dataset_name][label] = sub_test
+                    logger.info(f"{dataset_name} {label} images: {len(sub_train)}/{len(sub_val)}/{len(sub_test)}")
+                else:
+                    sub_train, sub_val = split_parts(folder_dict, (
+                        data_config["split"]["train"],
+                        data_config["split"]["val"]
+                    ), strict=False)
+                    train_images[dataset_name][label] = sub_train
+                    val_images[dataset_name][label] = sub_val
+                    logger.info(f"{dataset_name} {label} images: {len(sub_train)}/{len(sub_val)}")
     return train_images, val_images, test_images
 
 

@@ -83,8 +83,9 @@ def collect(path):
 
 def main():
     ROOT_PATH = "../dataset"
-    DATASET_NAMES = ["DiT", "lia", "heygen", "heygen_new", "deepfacelab", "StyleGAN2", "fsgan", "faceswap", "FaceForensics++", "Celeb-DF-v2",
-                     "SageMaker", "simswap", "stargan", "starganv2", "styleclip"]
+    DATASET_NAMES = ["deepfacelab", "heygen_new", "stargan", "starganv2", "styleclip", "SageMaker", "CollabDiff","MidJourney"] + ["DiT", "fsgan", "lia", "StyleGAN2", "faceswap", "heygen", "simswap", "blendface",
+                          "danet", "ddim", "e4s", "facedancer", "fomm", "hyperreenact", "inswap", "mcnet", "mobileswap",
+                          "MRAA", "one_shot_free", "pirender", "RDDM", "simswap", "SiT"]
 
     for name in DATASET_NAMES:
         collect(os.path.join(ROOT_PATH, name))

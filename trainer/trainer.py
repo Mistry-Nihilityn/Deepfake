@@ -93,15 +93,22 @@ class Trainer(object):
             x.requires_grad = False
 
         if use_sam:
+            rho = self.config['optimizer']['sam']['rho']
+            utilized_epoch = epoch-self.config['optimizer']['sam']["start_epoch"]+1
+            if utilized_epoch<= self.config['optimizer']['sam']['warm_up']:
+                rho = rho*utilized_epoch/(self.config['optimizer']['sam']['warm_up']+1)
             predictions = self.model(x)
-            loss = self.model.get_losses(label, predictions)
+            if self.config['optimizer']['sam']['affect_fake_only']:
+                loss = self.model.get_losses(label, predictions, reduction="none")*label
+            else:
+                loss = self.model.get_losses(label, predictions, reduction="none")
             self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.first_step(zero_grad=True)
+            loss.mean().backward()
+            self.optimizer.first_step(rho, zero_grad=True)
 
             predictions = self.model(x)
-            loss = self.model.get_losses(label, predictions)
-            loss.backward()
+            loss = self.model.get_losses(label, predictions, reduction="none")
+            loss.mean().backward()
             self.optimizer.second_step(zero_grad=True)
         else:
             predictions = self.model(x)

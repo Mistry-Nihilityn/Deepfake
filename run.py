@@ -1,3 +1,4 @@
+import copy
 import datetime
 import os
 import random
@@ -74,7 +75,21 @@ def prepare_train_data(config, logger):
             batch_size=data_config['batch_size'],
             shuffle=False,
             num_workers=int(data_config['workers'])
-        )
+        ) if config["val_dataset_configs"] is None else torch.utils.data.DataLoader(
+        dataset=TestDataset(
+            val_files,
+            resolution=config['resolution'],
+            balance=data_config['balance'],
+            # sample_per_class=int(
+            #     data_config['sample_per_class'] * data_config['split']['test'] // data_config["split"]['train']),
+            augment_config=None,
+            mean=config['mean'],
+            std=config['std']
+        ),
+        batch_size=data_config['batch_size'],
+        shuffle=False,
+        num_workers=int(data_config['workers'])
+    )
     test_data_loader = torch.utils.data.DataLoader(
         dataset=TestDataset(
             test_files,
@@ -129,7 +144,6 @@ def choose_optimizer(model, config):
             model.feature_params(),
             model.classifier_params(),
             base_optimizer_class,
-            config['optimizer']['sam']["rho"],
             config['optimizer']['sam']["affect_classifier"],
             **config['optimizer'][opt_name]
         )
@@ -230,6 +244,18 @@ def train(config):
         if scheduler is not None:
             scheduler.step()
 
+        if config["test_after_every_epoch"]:
+            epoch_dir = os.path.join(trainer.log_dir, f"epoch{epoch}")
+            os.makedirs(epoch_dir)
+
+            params = copy.deepcopy(trainer.model.state_dict())
+            torch.save(params, os.path.join(epoch_dir, "best_model.pth"))
+
+            for test_dataset_config_path in config["test_dataset_configs"]:
+                with open(test_dataset_config_path, 'r') as f:
+                    config["dataset"]["test"] = yaml.safe_load(f)
+                test(config, epoch_dir)
+
     metric = trainer.best_metric
     epoch = metric['epoch']
     loss = metric["avg_loss"]
@@ -291,6 +317,11 @@ def run(config_path):
     for train_dataset_config_path in config["train_dataset_configs"]:
         with open(train_dataset_config_path, 'r') as f:
             config["dataset"]["train"] = config["dataset"]["test"] = yaml.safe_load(f)
+        if config.get("val_dataset_configs", None) is None:
+            config["dataset"]["val"] = None
+        else:
+            with open(config["val_dataset_configs"], 'r') as f:
+                config["dataset"]["val"] = yaml.safe_load(f)
         train_dir = train(config)
         if config["dataset"]["train"]["type"] == "cross-domain":
             for test_dataset_config_path in config["test_dataset_configs"]:
@@ -300,14 +331,14 @@ def run(config_path):
 
 
 RUNS = [
-    "config/run_coatnet.yaml",
-    "config/run_coatnet_sam.yaml",
-    "config/run_coatnet_sam_all.yaml",
+    # "config/run_coatnet.yaml",
+    # "config/run_coatnet_sam.yaml",
+    # "config/run_coatnet_sam_all.yaml",
     # "config/run_coatnet_is_sam.yaml",
     # "config/run_coatnet_sam_is_sam.yaml",
-    # "config/run_resnet50.yaml",
-    # "config/run_resnet50_sam.yaml",
-    # "config/run_resnet50_sam_all.yaml",
+    "config/run_resnet50.yaml",
+    "config/run_resnet50_sam.yaml",
+    "config/run_resnet50_sam_all.yaml",
     # "config/run_resnet50_is_sam.yaml",
     # "config/run_resnet50_sam_is_sam.yaml"
     # "config/run_dino.yaml",
@@ -322,7 +353,7 @@ if __name__ == '__main__':
             except Exception as e:
                 print("Error!")
                 traceback.print_tb(e.__traceback__, file=f)
-                raise e
+                # raise e
         f.write("Finished!")
         print("Finished!")
-    # os.system("/usr/bin/shutdown")
+    os.system("/usr/bin/shutdown")

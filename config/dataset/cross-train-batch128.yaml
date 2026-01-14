@@ -2,13 +2,13 @@ name: train1
 root: ../dataset
 type: cross-domain
 domain: [ff, cdf]
-real_dataset_names: [FaceForensics++, Celeb-DF-v2, deepfacelab, stargan, styleclip, heygen_new]
-fake_dataset_names: [deepfacelab, StyleGAN2, fsgan, faceswap, stargan, styleclip, heygen, heygen_new]
+real_dataset_names: [FaceForensics++, Celeb-DF-v2, deepfacelab, heygen_new, stargan, styleclip, CollabDiff, MidJourney]
+fake_dataset_names: [deepfacelab, heygen_new, stargan, styleclip, CollabDiff, MidJourney, DiT, fsgan, lia, StyleGAN2, faceswap, heygen, simswap, blendface, danet, ddim, e4s, facedancer, fomm, hyperreenact, inswap, mcnet, mobileswap, MRAA, one_shot_free, pirender, RDDM, simswap, SiT]
 batch_size: 128
-workers: 8
+workers: 16
 balance: true
-sample_per_class: 4000
+sample_per_class: 2000
 split:
-  train: 0.7
+  train: 0.9
   val: 0.1
-  test: 0.2
+  test: 0.0

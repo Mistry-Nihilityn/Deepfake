@@ -10,11 +10,11 @@ class CrossEntropyLoss(AbstractLossClass):
     def __init__(self, config):
         super().__init__()
         if "weight" in config["dataset"]:
-            self.loss_fn = nn.CrossEntropyLoss(weight=torch.tensor(config["dataset"]["weight"]))
+            self.loss_fn = nn.CrossEntropyLoss(weight=torch.tensor(config["dataset"]["weight"]), reduction="none")
         else:
-            self.loss_fn = nn.CrossEntropyLoss()
+            self.loss_fn = nn.CrossEntropyLoss(reduction="none")
 
-    def forward(self, inputs, targets):
+    def forward(self, inputs, targets, reduction="mean"):
         """
         Computes the cross-entropy loss.
 
@@ -27,5 +27,6 @@ class CrossEntropyLoss(AbstractLossClass):
         """
         # Compute the cross-entropy loss
         loss = self.loss_fn(inputs, targets)
-
+        if reduction == "mean":
+            return loss.mean()
         return loss

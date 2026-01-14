@@ -1,0 +1,11 @@
+name: starganv2
+
+root: ../dataset
+domain: [ff, cdf]
+real_dataset_names: [ starganv2 ]
+fake_dataset_names: [ starganv2 ]
+batch_size: 128
+workers: 8
+balance: false
+split:
+  test: 1.0
