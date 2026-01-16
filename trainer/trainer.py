@@ -155,7 +155,7 @@ class Trainer(object):
         total_loss = 0
         total_correct = 0
         total_samples = 0
-
+        train_data_loader.dataset.sample()
         train_pbar = tqdm(enumerate(train_data_loader), desc=f"Training epoch {epoch}", leave=False,
                           total=len(train_data_loader))
         self.set_train()

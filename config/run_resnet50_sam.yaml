@@ -14,7 +14,7 @@ val_dataset_configs: null
 
 test_dataset_configs: [
   config/dataset/test_SageMaker.yaml,
-  config/dataset/test_DiT.yaml,
+  config/dataset/test_starganv2.yaml,
 ]
 
 test_after_every_epoch: true

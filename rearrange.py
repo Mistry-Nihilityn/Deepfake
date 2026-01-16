@@ -69,16 +69,18 @@ def collect_single_dataset(folder_path):
 
     return hierarchical_data, cnt
 
-def collect(path):
+def collect(path, feedback=False):
     file = os.path.join(path, "label.json")
     if os.path.exists(file):
-        print(f"JSON文件已存在: {file}")
+        if feedback:
+            print(f"JSON文件已存在: {file}")
         return
 
     label_dict, cnt = collect_single_dataset(path)
     with open(file, 'w', encoding='utf-8') as f:
         json.dump(label_dict, f, indent=4, ensure_ascii=False)
-    print(f"JSON文件已保存到: {file} 一共 {cnt} 个样本")
+    if feedback:
+        print(f"JSON文件已保存到: {file} 一共 {cnt} 个样本")
 
 
 def main():

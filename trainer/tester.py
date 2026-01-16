@@ -1,5 +1,6 @@
 import json
 import os
+import pprint
 import sys
 from datetime import datetime
 
@@ -234,7 +235,8 @@ class Tester(object):
         })
 
         self._save_metrics(metrics)
-        self.logger.info("Metrics: {}".format(metrics))
+        self.logger.info(f"{f'Results':=^50}")
+        self.logger.info("Metrics: \n"+pprint.pformat(metrics))
         return metrics
 
     @torch.no_grad()

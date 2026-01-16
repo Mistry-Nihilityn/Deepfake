@@ -1,6 +1,7 @@
 import copy
 import datetime
 import os
+import pprint
 import random
 import sys
 import time
@@ -200,8 +201,7 @@ def train(config):
     logger = create_logger(os.path.join(log_dir, 'training.log'))
     logger.info("--------------- Global Configuration ---------------")
     params_string = "Parameters: \n"
-    for key, value in config.items():
-        params_string += "{}: {}".format(key, value) + "\n"
+    params_string += pprint.pformat(config)
     logger.info(params_string)
 
     train_data_loader, val_data_loader, test_data_loader = prepare_train_data(config, logger)
@@ -248,13 +248,10 @@ def train(config):
             epoch_dir = os.path.join(trainer.log_dir, f"epoch{epoch}")
             os.makedirs(epoch_dir)
 
-            params = copy.deepcopy(trainer.model.state_dict())
-            torch.save(params, os.path.join(epoch_dir, "best_model.pth"))
-
             for test_dataset_config_path in config["test_dataset_configs"]:
                 with open(test_dataset_config_path, 'r') as f:
                     config["dataset"]["test"] = yaml.safe_load(f)
-                test(config, epoch_dir)
+                test(config, epoch_dir, model)
 
     metric = trainer.best_metric
     epoch = metric['epoch']
@@ -276,14 +273,13 @@ def train(config):
     return log_dir
 
 
-def test(config, train_dir):
+def test(config, train_dir, model=None):
     log_dir = os.path.join(train_dir, config["dataset"]["test"]["name"])
     os.makedirs(log_dir, exist_ok=True)
     logger = create_logger(os.path.join(log_dir, 'test.log'))
-    logger.info("--------------- Configuration ---------------")
+    logger.info("--------------- Global Configuration ---------------")
     params_string = "Parameters: \n"
-    for key, value in config.items():
-        params_string += "{}: {}".format(key, value) + "\n"
+    params_string += pprint.pformat(config)
     logger.info(params_string)
 
     test_data_loader = prepare_test_data(config, logger)
@@ -293,10 +289,11 @@ def test(config, train_dir):
     logger.info(f"  - real: {test_data_loader.dataset.real_cnt:,}")
     logger.info(f"  - total: {test_data_loader.dataset.fake_cnt + test_data_loader.dataset.real_cnt:,}")
 
-    model_class = DETECTOR[config['model_name']]
-    model = model_class(config)
-    model.load_state_dict(torch.load(os.path.join(train_dir, 'best_model.pth')), strict=False)
-    model = model.to(device)
+    if model is None:
+        model_class = DETECTOR[config['model_name']]
+        model = model_class(config)
+        model.load_state_dict(torch.load(os.path.join(train_dir, 'best_model.pth')), strict=False)
+        model = model.to(device)
     tester = Tester(config, model, logger, log_dir=log_dir)
     tester.test(test_data_loader)
 
@@ -329,16 +326,20 @@ def run(config_path):
                     config["dataset"]["test"] = yaml.safe_load(f)
                 test(config, train_dir)
 
+        with open(os.path.join(train_dir, 'experiment_finished.txt'), 'w') as f:
+            f.write("YES")
+
+
 
 RUNS = [
-    # "config/run_coatnet.yaml",
+    "config/run_coatnet.yaml",
     # "config/run_coatnet_sam.yaml",
     # "config/run_coatnet_sam_all.yaml",
     # "config/run_coatnet_is_sam.yaml",
     # "config/run_coatnet_sam_is_sam.yaml",
-    "config/run_resnet50.yaml",
-    "config/run_resnet50_sam.yaml",
-    "config/run_resnet50_sam_all.yaml",
+    # "config/run_resnet50.yaml",
+    # "config/run_resnet50_sam.yaml",
+    # "config/run_resnet50_sam_all.yaml",
     # "config/run_resnet50_is_sam.yaml",
     # "config/run_resnet50_sam_is_sam.yaml"
     # "config/run_dino.yaml",
@@ -353,7 +354,7 @@ if __name__ == '__main__':
             except Exception as e:
                 print("Error!")
                 traceback.print_tb(e.__traceback__, file=f)
-                # raise e
+                raise e
         f.write("Finished!")
         print("Finished!")
     os.system("/usr/bin/shutdown")

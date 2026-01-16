@@ -1,4 +1,4 @@
-name: train1
+name: All42
 root: ../dataset
 type: cross-domain
 domain: [ff, cdf]
@@ -7,7 +7,7 @@ fake_dataset_names: [deepfacelab, heygen_new, stargan, styleclip, CollabDiff, Mi
 batch_size: 128
 workers: 16
 balance: true
-sample_per_class: 2000
+sample_per_class: 1000
 split:
   train: 0.9
   val: 0.1

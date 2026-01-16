@@ -1,3 +1,4 @@
+import copy
 import sys
 
 import torch
@@ -24,6 +25,8 @@ class AbstractDataset(data.Dataset, metaclass=ABCMeta):
 
         self.real_imgs = {name: images[name]["real"] for name in images.keys() if len(images[name]["real"])}
         self.fake_imgs = {name: images[name]["fake"] for name in images.keys() if len(images[name]["fake"])}
+        self.reaL_imgs_backup = copy.deepcopy(self.real_imgs)
+        self.fake_imgs_backup = copy.deepcopy(self.fake_imgs)
         self.real_cnt = self.fake_cnt = None
         self.transform = self.init_data_aug_method()
 
@@ -104,6 +107,14 @@ class TrainDataset(AbstractDataset):
         super().__init__(images, *args, **kwargs)
         if self.balance:
             self.sample_per_class = sample_per_class
+        else:
+            self.sample_per_class = None
+        self.sample()
+
+    def sample(self):
+        if self.balance:
+            self.real_imgs = copy.deepcopy(self.reaL_imgs_backup)
+            self.fake_imgs = copy.deepcopy(self.fake_imgs_backup)
             tot = 0
             for sub in self.fake_imgs.values():
                 if len(sub) == 0:
@@ -121,33 +132,24 @@ class TrainDataset(AbstractDataset):
                 return sum(map(lambda x: min(x, m), lengths)) > tot
 
             while l <= r:
-                mid = (l+r)//2
+                mid = (l + r) // 2
                 if check(mid):
-                    r = mid-1
+                    r = mid - 1
                     ans = mid
                 else:
-                    l = mid+1
+                    l = mid + 1
 
             classes = len(self.real_imgs)
             prefix = 0
             for i, sub in enumerate(self.real_imgs.values()):
-                num_sample = min(ans if prefix + (classes-i)*ans <= tot else ans - 1, len(sub))
+                num_sample = min(ans if prefix + (classes - i) * ans <= tot else ans - 1, len(sub))
                 prefix += num_sample
                 if num_sample < len(sub):
                     inplace_sample(sub, num_sample)
             self.real_cnt = self.fake_cnt = tot
         else:
-            self.sample_per_class = None
+            pass
 
-            self.real_cnt = 0
-            for sub in self.real_imgs.values():
-                self.real_cnt += len(sub)
-
-            self.fake_cnt = 0
-            for sub in self.fake_imgs.values():
-                self.fake_cnt += len(sub)
-
-        # show_samples(self, 5)
 
     def __getitem__(self, index, no_norm=False):
         if index < self.real_cnt:
